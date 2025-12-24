@@ -1,0 +1,554 @@
+<!-- 6. order_detail.html -->
+<!-- sportshop/templates/sportshop/order_detail.html -->
+{% extends 'sportshop/base.html' %}
+
+{% block content %}
+<div class="order-detail-page">
+    <div class="container">
+        <nav class="breadcrumbs">
+            <a href="{% url 'index' %}">Главная</a> /
+            <a href="{% url 'account_orders' %}">Мои заказы</a> /
+            <span>Заказ #{{ order.order_number }}</span>
+        </nav>
+
+        <div class="order-header">
+            <h1>Заказ #{{ order.order_number }}</h1>
+            <div class="order-status">
+                <span class="status-badge status-{{ order.status }}">
+                    {{ order.get_status_display }}
+                </span>
+                <span class="order-date">от {{ order.created_at|date:"d.m.Y H:i" }}</span>
+            </div>
+        </div>
+
+        <div class="order-details-grid">
+            <!-- Информация о заказе -->
+            <div class="order-section">
+                <div class="section-card">
+                    <h3><i class="fas fa-info-circle"></i> Информация о заказе</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Номер заказа:</span>
+                            <span class="info-value">{{ order.order_number }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Дата создания:</span>
+                            <span class="info-value">{{ order.created_at|date:"d.m.Y H:i" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Статус:</span>
+                            <span class="info-value status-{{ order.status }}">
+                                {{ order.get_status_display }}
+                            </span>
+                        </div>
+                        {% if order.tracking_number %}
+                        <div class="info-item">
+                            <span class="info-label">Трек номер:</span>
+                            <span class="info-value">{{ order.tracking_number }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Доставка -->
+                <div class="section-card">
+                    <h3><i class="fas fa-truck"></i> Доставка</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Способ:</span>
+                            <span class="info-value">{{ order.get_delivery_method_display }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Стоимость:</span>
+                            <span class="info-value">{{ order.delivery_cost }} ₽</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Адрес:</span>
+                            <span class="info-value">{{ order.delivery_address }}</span>
+                        </div>
+                        {% if order.delivery_date %}
+                        <div class="info-item">
+                            <span class="info-label">Дата доставки:</span>
+                            <span class="info-value">{{ order.delivery_date|date:"d.m.Y" }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Оплата -->
+                <div class="section-card">
+                    <h3><i class="fas fa-credit-card"></i> Оплата</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Способ:</span>
+                            <span class="info-value">{{ order.get_payment_method_display }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Статус:</span>
+                            <span class="info-value payment-{{ order.payment_status }}">
+                                {{ order.get_payment_status_display }}
+                            </span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Общая сумма:</span>
+                            <span class="info-value">{{ order.total_amount }} ₽</span>
+                        </div>
+                        {% if order.payment_date %}
+                        <div class="info-item">
+                            <span class="info-label">Дата оплаты:</span>
+                            <span class="info-value">{{ order.payment_date|date:"d.m.Y H:i" }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if order.notes %}
+                <div class="section-card">
+                    <h3><i class="fas fa-comment"></i> Комментарий к заказу</h3>
+                    <p class="order-notes">{{ order.notes }}</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Товары -->
+            <div class="order-section">
+                <div class="section-card">
+                    <h3><i class="fas fa-shopping-bag"></i> Состав заказа</h3>
+                    <div class="order-items-list">
+                        {% for item in order.items.all %}
+                        <div class="order-item-detail">
+                            <div class="item-image">
+                                {% if item.product.image %}
+                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                                {% else %}
+                                <div class="image-placeholder">
+                                    <i class="fas fa-image"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="item-info">
+                                <a href="{% url 'product_detail' item.product.id %}"
+                                   class="item-name">{{ item.product.name }}</a>
+                                <div class="item-options">
+                                    {% if item.product.color %}
+                                    <span class="item-option">Цвет: {{ item.product.color }}</span>
+                                    {% endif %}
+                                    {% if item.product.size %}
+                                    <span class="item-option">Размер: {{ item.product.size }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="item-quantity">×{{ item.quantity }}</div>
+                            <div class="item-price">{{ item.get_total_price }} ₽</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="order-totals">
+                        <div class="total-row">
+                            <span>Товары</span>
+                            <span>{{ order.get_items_total }} ₽</span>
+                        </div>
+                        <div class="total-row">
+                            <span>Доставка</span>
+                            <span>{{ order.delivery_cost }} ₽</span>
+                        </div>
+                        {% if order.discount_amount %}
+                        <div class="total-row discount">
+                            <span>Скидка</span>
+                            <span>-{{ order.discount_amount }} ₽</span>
+                        </div>
+                        {% endif %}
+                        <div class="total-row grand-total">
+                            <span>Итого</span>
+                            <span>{{ order.total_amount }} ₽</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Действия с заказом -->
+                <div class="order-actions">
+                    {% if order.status == 'pending' %}
+                    <button class="btn btn-danger" onclick="cancelOrder({{ order.id }})">
+                        <i class="fas fa-times"></i> Отменить заказ
+                    </button>
+                    {% endif %}
+
+                    {% if order.status == 'delivered' %}
+                    <button class="btn btn-success" onclick="repeatOrder({{ order.id }})">
+                        <i class="fas fa-redo"></i> Повторить заказ
+                    </button>
+                    <a href="#" class="btn btn-primary">
+                        <i class="fas fa-star"></i> Оставить отзыв
+                    </a>
+                    {% endif %}
+
+                    <a href="{% url 'account_orders' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Вернуться к заказам
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.order-detail-page {
+    background: #f8f9fa;
+    min-height: 100vh;
+    padding: 40px 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.breadcrumbs {
+    margin-bottom: 30px;
+}
+
+.breadcrumbs a {
+    color: #667eea;
+    text-decoration: none;
+}
+
+.breadcrumbs a:hover {
+    text-decoration: underline;
+}
+
+.breadcrumbs .current {
+    color: #6c757d;
+}
+
+.order-header {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.order-header h1 {
+    margin: 0;
+    font-size: 28px;
+    color: #333;
+}
+
+.order-status {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.status-badge {
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-pending { background: #fff3cd; color: #856404; }
+.status-processing { background: #cce5ff; color: #004085; }
+.status-shipped { background: #d1ecf1; color: #0c5460; }
+.status-delivered { background: #d4edda; color: #155724; }
+.status-cancelled { background: #f8d7da; color: #721c24; }
+
+.order-date {
+    color: #6c757d;
+    font-size: 14px;
+}
+
+.order-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+
+@media (max-width: 992px) {
+    .order-details-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.section-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    border: 1px solid #e9ecef;
+}
+
+.section-card h3 {
+    margin: 0 0 20px 0;
+    font-size: 18px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+@media (max-width: 576px) {
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.info-label {
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.info-value {
+    font-weight: 500;
+    color: #333;
+}
+
+.payment-paid { color: #28a745; }
+.payment-pending { color: #ffc107; }
+.payment-failed { color: #dc3545; }
+
+.order-notes {
+    margin: 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    color: #555;
+    line-height: 1.6;
+}
+
+.order-items-list {
+    margin-bottom: 25px;
+}
+
+.order-item-detail {
+    display: grid;
+    grid-template-columns: 80px 1fr auto auto;
+    gap: 20px;
+    padding: 20px 0;
+    border-bottom: 1px solid #f1f3f5;
+    align-items: center;
+}
+
+.order-item-detail:last-child {
+    border-bottom: none;
+}
+
+.item-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-placeholder {
+    width: 100%;
+    height: 100%;
+    background: #f1f3f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #adb5bd;
+}
+
+.item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.item-name {
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 16px;
+    transition: color 0.3s;
+}
+
+.item-name:hover {
+    color: #667eea;
+}
+
+.item-options {
+    display: flex;
+    gap: 15px;
+}
+
+.item-option {
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.item-quantity {
+    font-size: 16px;
+    color: #333;
+    font-weight: 500;
+}
+
+.item-price {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    min-width: 100px;
+    text-align: right;
+}
+
+.order-totals {
+    border-top: 2px solid #f1f3f5;
+    padding-top: 20px;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 16px;
+    color: #6c757d;
+}
+
+.total-row.grand-total {
+    font-size: 20px;
+    font-weight: 700;
+    color: #333;
+    padding-top: 15px;
+    border-top: 2px solid #667eea;
+    margin-top: 15px;
+}
+
+.total-row.discount {
+    color: #28a745;
+}
+
+.order-actions {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 25px;
+}
+
+.btn {
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s;
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c82333;
+}
+
+.btn-success {
+    background: #28a745;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #218838;
+}
+
+.btn-primary {
+    background: #667eea;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #5a67d8;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+</style>
+
+<script>
+function cancelOrder(orderId) {
+    if (confirm('Вы уверены, что хотите отменить этот заказ?')) {
+        fetch(`/api/orders/${orderId}/cancel/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Заказ отменен');
+                location.reload();
+            } else {
+                alert('Ошибка: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Ошибка соединения');
+        });
+    }
+}
+
+function repeatOrder(orderId) {
+    if (confirm('Добавить товары из этого заказа в корзину?')) {
+        fetch(`/api/orders/${orderId}/repeat/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Товары добавлены в корзину');
+                window.location.href = '{% url "cart" %}';
+            } else {
+                alert('Ошибка: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Ошибка соединения');
+        });
+    }
+}
+</script>
+{% endblock %}

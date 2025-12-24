@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Спорт-магазин{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563EB;
+            --secondary: #059669;
+            --accent: #EA580C;
+            --success: #16A34A;
+            --danger: #DC2626;
+            --warning: #F59E0B;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-800: #1F2937;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Шапка */
+        .header {
+            background: white;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--primary);
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .logo i {
+            font-size: 28px;
+        }
+        
+        /* Поиск в шапке */
+        .header-search {
+            flex: 1;
+            max-width: 500px;
+            margin: 0 30px;
+            position: relative;
+        }
+        
+        .search-form {
+            display: flex;
+            width: 100%;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid var(--primary);
+            border-radius: 30px 0 0 30px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s;
+        }
+        
+        .search-input:focus {
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
+        
+        .search-button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 0 30px 30px 0;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        
+        .search-button:hover {
+            background: #1d4ed8;
+        }
+        
+        /* Навигация */
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .nav-link {
+            color: var(--gray-800);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .nav-link:hover {
+            background: var(--gray-100);
+            color: var(--primary);
+        }
+        
+        .nav-link.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .cart-link {
+            position: relative;
+        }
+        
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--danger);
+            color: white;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 50%;
+            min-width: 20px;
+            text-align: center;
+        }
+        
+        /* Профиль пользователя - простая ссылка */
+        .user-profile-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--gray-800);
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+        
+        .user-profile-link:hover {
+            background: var(--gray-100);
+            color: var(--primary);
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .user-name {
+            font-weight: 500;
+            color: var(--gray-800);
+        }
+        
+        /* Контент */
+        .main-content {
+            padding: 30px 0;
+            min-height: calc(100vh - 200px);
+        }
+        
+        /* Подвал */
+        .footer {
+            background: var(--gray-800);
+            color: white;
+            padding: 40px 0 20px;
+            margin-top: auto;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+        
+        .footer-section h3 {
+            margin-bottom: 20px;
+            font-size: 18px;
+            color: white;
+        }
+        
+        .footer-links {
+            list-style: none;
+        }
+        
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+        
+        .footer-links a {
+            color: #D1D5DB;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: white;
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #4B5563;
+            color: #9CA3AF;
+            font-size: 14px;
+        }
+        
+        /* Уведомления */
+        .messages {
+            margin: 20px 0;
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .alert-success {
+            background: #D1FAE5;
+            color: #065F46;
+            border: 1px solid #10B981;
+        }
+        
+        .alert-error {
+            background: #FEE2E2;
+            color: #7F1D1D;
+            border: 1px solid #EF4444;
+        }
+        
+        .alert-warning {
+            background: #FEF3C7;
+            color: #92400E;
+            border: 1px solid #F59E0B;
+        }
+        
+        .alert-info {
+            background: #DBEAFE;
+            color: #1E40AF;
+            border: 1px solid #3B82F6;
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-wrap: wrap;
+            }
+            
+            .header-search {
+                order: 3;
+                max-width: 100%;
+                margin: 15px 0 0 0;
+            }
+            
+            .nav {
+                gap: 10px;
+            }
+            
+            .user-name {
+                display: none;
+            }
+        }
+        
+        /* Кнопки */
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Шапка -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <!-- Логотип -->
+                <a href="{% url 'home' %}" class="logo">
+                    <i class="fas fa-running"></i>
+                    <span>SportShop</span>
+                </a>
+                
+                <!-- Поиск -->
+                <div class="header-search">
+                    <form action="{% url 'search' %}" method="get" class="search-form">
+                        <input type="text" name="q" class="search-input" 
+                               placeholder="Поиск товаров..." 
+                               value="{{ request.GET.q|default:'' }}">
+                        <button type="submit" class="search-button">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Навигация -->
+                <nav class="nav">
+                    <a href="{% url 'home' %}" class="nav-link {% if request.path == '/' %}active{% endif %}">
+                        <i class="fas fa-home"></i> Главная
+                    </a>
+                    <a href="{% url 'catalog' %}" class="nav-link {% if 'catalog' in request.path %}active{% endif %}">
+                        <i class="fas fa-store"></i> Каталог
+                    </a>
+                    <a href="{% url 'cart' %}" class="nav-link cart-link">
+                        <i class="fas fa-shopping-cart"></i> Корзина
+                        {% if cart_count and cart_count > 0 %}
+                        <span class="cart-count">{{ cart_count }}</span>
+                        {% endif %}
+                    </a>
+                    
+                    <!-- Профиль пользователя / Вход -->
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'account' %}" class="user-profile-link">
+                        <div class="user-avatar">
+                             {{ user.username|first|upper }}
+                        </div>
+                       <span class="user-name">{{ user.username }}</span>
+                    </a>
+                    {% else %}
+                    <div class="auth-buttons">
+                        <a href="{% url 'login' %}" class="btn btn-outline btn-small">
+                            <i class="fas fa-sign-in-alt"></i> Войти
+                        </a>
+                        <a href="{% url 'register' %}" class="btn btn-primary btn-small">
+                            <i class="fas fa-user-plus"></i> Регистрация
+                        </a>
+                    </div>
+                    {% endif %}
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Основной контент -->
+    <main class="main-content">
+        <div class="container">
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Подвал -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>SportShop</h3>
+                    <p>Всё для спорта и активного отдыха</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Категории</h3>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'catalog' %}?category=1">Одежда</a></li>
+                        <li><a href="{% url 'catalog' %}?category=2">Обувь</a></li>
+                        <li><a href="{% url 'catalog' %}?category=3">Инвентарь</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Информация</h3>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'about' %}">О нас</a></li>
+                        <li><a href="{% url 'delivery' %}">Доставка</a></li>
+                        <li><a href="{% url 'returns' %}">Возврат</a></li>
+                        <li><a href="{% url 'contacts' %}">Контакты</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Контакты</h3>
+                    <p><i class="fas fa-phone"></i> +7 (999) 123-45-67</p>
+                    <p><i class="fas fa-envelope"></i> info@sportshop.ru</p>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2025 SportShop. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    // Обновление счетчика корзины
+    function updateCartCount(count) {
+        const cartCountElement = document.querySelector('.cart-count');
+        if (cartCountElement) {
+            if (count > 0) {
+                cartCountElement.textContent = count;
+                cartCountElement.style.display = 'flex';
+            } else {
+                cartCountElement.style.display = 'none';
+            }
+        }
+    }
+    
+    // AJAX добавление в корзину
+    document.addEventListener('DOMContentLoaded', function() {
+        // Глобальная функция для добавления в корзину
+        window.addToCart = function(productId, quantity = 1) {
+            fetch('{% url "add_to_cart" 0 %}'.replace('0', productId), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ quantity: quantity })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateCartCount(data.cart_count);
+                    showNotification(data.message, 'success');
+                } else {
+                    showNotification(data.message || 'Ошибка', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Ошибка соединения', 'error');
+            });
+        };
+        
+        // Функция получения CSRF токена
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        // Функция показа уведомлений
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type}`;
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                ${message}
+            `;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                animation: slideIn 0.3s ease-out;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+            
+            // Анимации
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes slideOut {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100%); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

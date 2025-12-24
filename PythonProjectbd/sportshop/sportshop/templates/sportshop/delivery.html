@@ -1,0 +1,1218 @@
+<!-- 8. delivery.html -->
+<!-- sportshop/templates/sportshop/delivery.html -->
+{% extends 'sportshop/base.html' %}
+
+{% block content %}
+<div class="delivery-page">
+    <div class="container">
+        <nav class="breadcrumbs">
+            <a href="{% url 'index' %}">Главная</a> /
+            <span>Доставка</span>
+        </nav>
+
+        <div class="delivery-header">
+            <h1>Доставка</h1>
+            <p class="subtitle">Быстрая и надежная доставка по всей России</p>
+        </div>
+
+        <div class="delivery-content">
+            <!-- Быстрая доставка -->
+            <section class="delivery-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-shipping-fast"></i> Быстрая доставка по Москве</h2>
+                    <p class="section-subtitle">Доставим заказ в день оформления</p>
+                </div>
+
+                <div class="fast-delivery-grid">
+                    <div class="delivery-card">
+                        <div class="card-icon">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <h3>Самовывоз</h3>
+                        <div class="delivery-details">
+                            <p><strong>Стоимость:</strong> Бесплатно</p>
+                            <p><strong>Срок:</strong> 1-2 часа</p>
+                            <p><strong>Адрес:</strong> г. Москва, ул. Примерная, д. 1</p>
+                        </div>
+                        <button class="btn btn-outline" onclick="showMap()">
+                            <i class="fas fa-map-marked-alt"></i> Посмотреть на карте
+                        </button>
+                    </div>
+
+                    <div class="delivery-card featured">
+                        <div class="card-icon">
+                            <i class="fas fa-motorcycle"></i>
+                        </div>
+                        <h3>Курьерская доставка</h3>
+                        <div class="delivery-details">
+                            <p><strong>Стоимость:</strong> 300 ₽</p>
+                            <p><strong>Срок:</strong> В день заказа</p>
+                            <p><strong>Время:</strong> 9:00 - 21:00</p>
+                        </div>
+                        <div class="delivery-bonus">
+                            <i class="fas fa-gift"></i> Бесплатно при заказе от 5,000 ₽
+                        </div>
+                    </div>
+                </div>
+
+                <div class="delivery-instructions">
+                    <h4>Как работает быстрая доставка:</h4>
+                    <ol>
+                        <li>Оформите заказ до 16:00</li>
+                        <li>Подтвердите заказ по телефону</li>
+                        <li>Курьер свяжется с вами за 30 минут до доставки</li>
+                        <li>Получите и оплатите заказ</li>
+                    </ol>
+                </div>
+            </section>
+
+            <!-- Доставка по России -->
+            <section class="delivery-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-globe"></i> Доставка по России</h2>
+                    <p class="section-subtitle">Доставляем в любой город страны</p>
+                </div>
+
+                <div class="russia-delivery-grid">
+                    <div class="delivery-method">
+                        <div class="method-header">
+                            <div class="method-icon">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                            <h3>СДЭК</h3>
+                            <div class="method-price">от 350 ₽</div>
+                        </div>
+                        <div class="method-body">
+                            <p><strong>Срок доставки:</strong> 2-7 дней</p>
+                            <p><strong>Пункты выдачи:</strong> Более 4,000 по всей России</p>
+                            <p><strong>Особенности:</strong> Отслеживание заказа онлайн</p>
+                        </div>
+                        <div class="method-footer">
+                            <a href="https://cdek.ru" target="_blank" class="btn-link">
+                                Рассчитать срок и стоимость <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="delivery-method">
+                        <div class="method-header">
+                            <div class="method-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <h3>Почта России</h3>
+                            <div class="method-price">от 250 ₽</div>
+                        </div>
+                        <div class="method-body">
+                            <p><strong>Срок доставки:</strong> 3-14 дней</p>
+                            <p><strong>Отделения:</strong> Доставка до ближайшего отделения</p>
+                            <p><strong>Особенности:</strong> Экономичный вариант</p>
+                        </div>
+                        <div class="method-footer">
+                            <a href="https://www.pochta.ru" target="_blank" class="btn-link">
+                                Отследить отправление <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="delivery-method">
+                        <div class="method-header">
+                            <div class="method-icon">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <h3>Boxberry</h3>
+                            <div class="method-price">от 300 ₽</div>
+                        </div>
+                        <div class="method-body">
+                            <p><strong>Срок доставки:</strong> 3-10 дней</p>
+                            <p><strong>Пункты выдачи:</strong> Более 2,000 городов</p>
+                            <p><strong>Особенности:</strong> Бесплатный возврат</p>
+                        </div>
+                        <div class="method-footer">
+                            <a href="https://boxberry.ru" target="_blank" class="btn-link">
+                                Найти пункт выдачи <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Калькулятор доставки -->
+            <section class="delivery-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-calculator"></i> Калькулятор доставки</h2>
+                    <p class="section-subtitle">Рассчитайте стоимость и срок доставки для вашего города</p>
+                </div>
+
+                <div class="calculator-card">
+                    <div class="calculator-form">
+                        <div class="form-group">
+                            <label for="city">Город доставки</label>
+                            <input type="text" id="city" class="form-input"
+                                   placeholder="Начните вводить название города"
+                                   list="cities-list">
+                            <datalist id="cities-list">
+                                <option value="Москва"></option>
+                                <option value="Санкт-Петербург"></option>
+                                <option value="Новосибирск"></option>
+                                <option value="Екатеринбург"></option>
+                                <option value="Казань"></option>
+                                <option value="Нижний Новгород"></option>
+                                <option value="Челябинск"></option>
+                                <option value="Самара"></option>
+                            </datalist>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="weight">Вес заказа (кг)</label>
+                            <input type="number" id="weight" class="form-input"
+                                   value="1" min="0.1" max="30" step="0.1">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="value">Стоимость заказа</label>
+                            <input type="number" id="value" class="form-input"
+                                   value="5000" min="0" step="100">
+                        </div>
+
+                        <button class="btn btn-primary" onclick="calculateDelivery()">
+                            <i class="fas fa-calculator"></i> Рассчитать
+                        </button>
+                    </div>
+
+                    <div class="calculator-results" id="delivery-results">
+                        <div class="results-placeholder">
+                            <i class="fas fa-shipping-fast"></i>
+                            <p>Введите данные для расчета доставки</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Частые вопросы -->
+            <section class="delivery-section">
+                <h2><i class="fas fa-question-circle"></i> Частые вопросы о доставке</h2>
+
+                <div class="delivery-faq">
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h3>Как отследить заказ?</h3>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>После отправки заказа мы пришлем вам трек-номер для отслеживания.
+                            Вы сможете отслеживать статус доставки в личном кабинете или на сайте транспортной компании.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h3>Можно ли изменить адрес доставки?</h3>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Да, вы можете изменить адрес доставки пока заказ не передан в службу доставки.
+                            Для этого свяжитесь с нашим менеджером по телефону или через онлайн-чат.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h3>Что делать, если курьер не приехал?</h3>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Свяжитесь с нами по телефону или в онлайн-чате. Мы уточним причину и организуем доставку
+                            в удобное для вас время. В случае задержки мы компенсируем стоимость доставки.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h3>Как получить заказ в выходной день?</h3>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Мы осуществляем доставку 7 дней в неделю с 9:00 до 21:00.
+                            При оформлении заказа вы можете выбрать удобную дату и время доставки.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Карта пунктов выдачи -->
+            <section class="delivery-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-map-marker-alt"></i> Пункты выдачи в Москве</h2>
+                </div>
+
+                <div class="pickup-map-container">
+                    <div class="map" id="pickup-map">
+                        <div class="map-placeholder">
+                            <i class="fas fa-map"></i>
+                            <p>Интерактивная карта пунктов выдачи</p>
+                        </div>
+                    </div>
+
+                    <div class="pickup-points">
+                        <div class="pickup-point active" onclick="selectPickupPoint(1)">
+                            <div class="point-header">
+                                <h4>Центральный пункт выдачи</h4>
+                                <span class="point-distance">0.5 км</span>
+                            </div>
+                            <div class="point-address">
+                                <i class="fas fa-map-marker-alt"></i>
+                                ул. Примерная, д. 1
+                            </div>
+                            <div class="point-hours">
+                                <i class="fas fa-clock"></i>
+                                Пн-Вс: 9:00-21:00
+                            </div>
+                        </div>
+
+                        <div class="pickup-point" onclick="selectPickupPoint(2)">
+                            <div class="point-header">
+                                <h4>Северный пункт выдачи</h4>
+                                <span class="point-distance">3.2 км</span>
+                            </div>
+                            <div class="point-address">
+                                <i class="fas fa-map-marker-alt"></i>
+                                пр. Северный, д. 45
+                            </div>
+                            <div class="point-hours">
+                                <i class="fas fa-clock"></i>
+                                Пн-Сб: 10:00-20:00
+                            </div>
+                        </div>
+
+                        <div class="pickup-point" onclick="selectPickupPoint(3)">
+                            <div class="point-header">
+                                <h4>Южный пункт выдачи</h4>
+                                <span class="point-distance">5.1 км</span>
+                            </div>
+                            <div class="point-address">
+                                <i class="fas fa-map-marker-alt"></i>
+                                ул. Южная, д. 28
+                            </div>
+                            <div class="point-hours">
+                                <i class="fas fa-clock"></i>
+                                Ежедневно: 8:00-22:00
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно с картой -->
+<div class="modal" id="map-modal">
+    <div class="modal-content map-modal-content">
+        <div class="modal-header">
+            <h3>Наш магазин на карте</h3>
+            <button class="modal-close" onclick="closeMapModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="full-map" id="full-map">
+                <div class="map-info">
+                    <h4>Магазин SportShop</h4>
+                    <p><i class="fas fa-map-marker-alt"></i> г. Москва, ул. Примерная, д. 1</p>
+                    <p><i class="fas fa-clock"></i> Ежедневно с 9:00 до 21:00</p>
+                    <p><i class="fas fa-phone"></i> +7 (495) 123-45-67</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.delivery-page {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 40px 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.breadcrumbs {
+    margin-bottom: 30px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.breadcrumbs a {
+    color: white;
+    text-decoration: none;
+}
+
+.breadcrumbs a:hover {
+    text-decoration: underline;
+}
+
+.delivery-header {
+    text-align: center;
+    margin-bottom: 50px;
+    color: white;
+}
+
+.delivery-header h1 {
+    font-size: 48px;
+    margin-bottom: 15px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.subtitle {
+    font-size: 20px;
+    opacity: 0.9;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.delivery-content {
+    background: white;
+    border-radius: 20px;
+    padding: 50px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.delivery-section {
+    margin-bottom: 60px;
+}
+
+.section-header {
+    margin-bottom: 30px;
+}
+
+.section-header h2 {
+    font-size: 32px;
+    color: #333;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.section-subtitle {
+    font-size: 18px;
+    color: #6c757d;
+    margin: 0;
+}
+
+/* Быстрая доставка */
+.fast-delivery-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+@media (max-width: 768px) {
+    .fast-delivery-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.delivery-card {
+    background: #f8f9fa;
+    border-radius: 15px;
+    padding: 30px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s;
+    text-align: center;
+}
+
+.delivery-card.featured {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    transform: translateY(-10px);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+}
+
+.delivery-card.featured h3,
+.delivery-card.featured p {
+    color: white;
+}
+
+.delivery-card.featured .delivery-details p strong {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.card-icon {
+    width: 80px;
+    height: 80px;
+    background: white;
+    color: #667eea;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin: 0 auto 20px;
+    border: 3px solid #667eea;
+}
+
+.delivery-card.featured .card-icon {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-color: white;
+}
+
+.delivery-card h3 {
+    font-size: 24px;
+    margin: 0 0 20px 0;
+    color: #333;
+}
+
+.delivery-details {
+    margin-bottom: 25px;
+    text-align: left;
+}
+
+.delivery-details p {
+    margin: 0 0 10px 0;
+    color: #6c757d;
+}
+
+.delivery-details p strong {
+    color: #333;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-weight: 500;
+    text-decoration: none;
+    border: 2px solid;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 16px;
+}
+
+.btn-outline {
+    background: transparent;
+    color: #667eea;
+    border-color: #667eea;
+}
+
+.btn-outline:hover {
+    background: #667eea;
+    color: white;
+}
+
+.btn-primary {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.btn-primary:hover {
+    background: #5a67d8;
+    border-color: #5a67d8;
+    transform: translateY(-2px);
+}
+
+.delivery-bonus {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: 600;
+}
+
+.delivery-instructions {
+    background: #f8f9fa;
+    border-radius: 15px;
+    padding: 25px;
+}
+
+.delivery-instructions h4 {
+    margin: 0 0 15px 0;
+    color: #333;
+}
+
+.delivery-instructions ol {
+    margin: 0;
+    padding-left: 20px;
+    color: #6c757d;
+}
+
+.delivery-instructions li {
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+/* Доставка по России */
+.russia-delivery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+}
+
+.delivery-method {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s;
+}
+
+.delivery-method:hover {
+    border-color: #667eea;
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.method-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.method-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.method-header h3 {
+    flex: 1;
+    margin: 0;
+    font-size: 20px;
+    color: #333;
+}
+
+.method-price {
+    font-weight: 700;
+    font-size: 18px;
+    color: #667eea;
+}
+
+.method-body {
+    margin-bottom: 20px;
+}
+
+.method-body p {
+    margin: 0 0 10px 0;
+    color: #6c757d;
+    font-size: 15px;
+}
+
+.method-body p strong {
+    color: #333;
+}
+
+.btn-link {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-link:hover {
+    text-decoration: underline;
+}
+
+/* Калькулятор доставки */
+.calculator-card {
+    background: #f8f9fa;
+    border-radius: 15px;
+    padding: 30px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+}
+
+@media (max-width: 992px) {
+    .calculator-card {
+        grid-template-columns: 1fr;
+    }
+}
+
+.calculator-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #333;
+}
+
+.form-input {
+    padding: 14px 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s;
+}
+
+.form-input:focus {
+    border-color: #667eea;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.calculator-results {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    border: 2px solid #e9ecef;
+}
+
+.results-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #6c757d;
+}
+
+.results-placeholder i {
+    font-size: 48px;
+    margin-bottom: 15px;
+    color: #ddd;
+}
+
+.results-placeholder p {
+    margin: 0;
+    text-align: center;
+}
+
+/* FAQ */
+.delivery-faq {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.faq-item {
+    margin-bottom: 15px;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.faq-question {
+    padding: 20px;
+    background: #f8f9fa;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.faq-question h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.faq-question i {
+    transition: transform 0.3s;
+}
+
+.faq-item.active .faq-question i {
+    transform: rotate(180deg);
+}
+
+.faq-answer {
+    padding: 0 20px;
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.3s;
+}
+
+.faq-item.active .faq-answer {
+    padding: 20px;
+    max-height: 500px;
+}
+
+.faq-answer p {
+    margin: 0;
+    color: #6c757d;
+    line-height: 1.6;
+}
+
+/* Карта пунктов выдачи */
+.pickup-map-container {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 30px;
+    height: 500px;
+}
+
+@media (max-width: 992px) {
+    .pickup-map-container {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+}
+
+.map {
+    background: #f8f9fa;
+    border-radius: 15px;
+    overflow: hidden;
+    position: relative;
+}
+
+.map-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+}
+
+.map-placeholder i {
+    font-size: 64px;
+    margin-bottom: 20px;
+    color: #ddd;
+}
+
+.pickup-points {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.pickup-point {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.pickup-point:hover {
+    border-color: #667eea;
+}
+
+.pickup-point.active {
+    border-color: #667eea;
+    background: rgba(102, 126, 234, 0.05);
+}
+
+.point-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.point-header h4 {
+    margin: 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.point-distance {
+    font-size: 14px;
+    color: #667eea;
+    font-weight: 600;
+}
+
+.point-address,
+.point-hours {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #6c757d;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.point-address:last-child,
+.point-hours:last-child {
+    margin-bottom: 0;
+}
+
+/* Модальное окно */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.map-modal-content {
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+}
+
+.modal-header {
+    padding: 20px 25px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s;
+}
+
+.modal-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-body {
+    padding: 0;
+}
+
+.full-map {
+    height: 400px;
+    background: #f8f9fa;
+    position: relative;
+}
+
+.map-info {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.map-info h4 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.map-info p {
+    margin: 0 0 8px 0;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.map-info p:last-child {
+    margin-bottom: 0;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .delivery-content {
+        padding: 30px 20px;
+    }
+
+    .delivery-header h1 {
+        font-size: 36px;
+    }
+
+    .section-header h2 {
+        font-size: 24px;
+    }
+
+    .calculator-form {
+        gap: 15px;
+    }
+}
+</style>
+
+<script>
+// Показ карты
+function showMap() {
+    document.getElementById('map-modal').style.display = 'flex';
+}
+
+function closeMapModal() {
+    document.getElementById('map-modal').style.display = 'none';
+}
+
+// Выбор пункта выдачи
+function selectPickupPoint(pointId) {
+    // Снимаем выделение со всех пунктов
+    document.querySelectorAll('.pickup-point').forEach(point => {
+        point.classList.remove('active');
+    });
+
+    // Выделяем выбранный пункт
+    const selectedPoint = event.currentTarget;
+    selectedPoint.classList.add('active');
+
+    // Здесь можно обновить карту или другую информацию
+    console.log('Выбран пункт выдачи:', pointId);
+}
+
+// Калькулятор доставки
+function calculateDelivery() {
+    const city = document.getElementById('city').value;
+    const weight = parseFloat(document.getElementById('weight').value);
+    const value = parseFloat(document.getElementById('value').value);
+
+    if (!city) {
+        alert('Введите город доставки');
+        return;
+    }
+
+    // Имитация расчета стоимости доставки
+    const results = document.getElementById('delivery-results');
+
+    // Загрузка
+    results.innerHTML = `
+        <div class="loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Расчет стоимости доставки...</p>
+        </div>
+    `;
+
+    setTimeout(() => {
+        // Расчет стоимости (примерные данные)
+        let sdekCost = 350;
+        let postCost = 250;
+        let boxberryCost = 300;
+
+        // Корректировка по весу
+        if (weight > 5) {
+            sdekCost += (weight - 5) * 50;
+            postCost += (weight - 5) * 30;
+            boxberryCost += (weight - 5) * 40;
+        }
+
+        // Корректировка по стоимости заказа
+        if (value > 5000) {
+            sdekCost = Math.max(300, sdekCost - 50);
+            postCost = Math.max(200, postCost - 50);
+            boxberryCost = Math.max(250, boxberryCost - 50);
+        }
+
+        // Определение сроков доставки по городу
+        let sdekDays = '2-4';
+        let postDays = '3-7';
+        let boxberryDays = '3-6';
+
+        if (city.toLowerCase().includes('москва') || city.toLowerCase().includes('санкт-петербург')) {
+            sdekDays = '1-2';
+            postDays = '2-4';
+            boxberryDays = '2-3';
+        } else if (city.toLowerCase().includes('новосибирск') ||
+                  city.toLowerCase().includes('екатеринбург') ||
+                  city.toLowerCase().includes('казань')) {
+            sdekDays = '3-5';
+            postDays = '5-10';
+            boxberryDays = '4-8';
+        }
+
+        // Отображение результатов
+        results.innerHTML = `
+            <div class="calculation-results">
+                <h3>Результаты расчета для ${city}</h3>
+
+                <div class="result-item">
+                    <div class="result-header">
+                        <i class="fas fa-truck"></i>
+                        <span>СДЭК</span>
+                    </div>
+                    <div class="result-details">
+                        <span class="result-price">${sdekCost} ₽</span>
+                        <span class="result-time">${sdekDays} дня</span>
+                    </div>
+                </div>
+
+                <div class="result-item">
+                    <div class="result-header">
+                        <i class="fas fa-envelope"></i>
+                        <span>Почта России</span>
+                    </div>
+                    <div class="result-details">
+                        <span class="result-price">${postCost} ₽</span>
+                        <span class="result-time">${postDays} дней</span>
+                    </div>
+                </div>
+
+                <div class="result-item">
+                    <div class="result-header">
+                        <i class="fas fa-box"></i>
+                        <span>Boxberry</span>
+                    </div>
+                    <div class="result-details">
+                        <span class="result-price">${boxberryCost} ₽</span>
+                        <span class="result-time">${boxberryDays} дней</span>
+                    </div>
+                </div>
+
+                <div class="result-note">
+                    <i class="fas fa-info-circle"></i>
+                    <p>Цены указаны ориентировочно. Точную стоимость рассчитает менеджер после оформления заказа.</p>
+                </div>
+            </div>
+        `;
+
+        // Добавляем стили для результатов
+        const style = document.createElement('style');
+        style.textContent = `
+            .calculation-results h3 {
+                margin: 0 0 20px 0;
+                color: #333;
+                font-size: 20px;
+            }
+
+            .result-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 15px;
+                background: #f8f9fa;
+                border-radius: 8px;
+                margin-bottom: 10px;
+                border: 1px solid #e9ecef;
+            }
+
+            .result-header {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-weight: 500;
+                color: #333;
+            }
+
+            .result-header i {
+                color: #667eea;
+                font-size: 18px;
+            }
+
+            .result-details {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end;
+                gap: 5px;
+            }
+
+            .result-price {
+                font-weight: 700;
+                color: #667eea;
+                font-size: 18px;
+            }
+
+            .result-time {
+                font-size: 14px;
+                color: #6c757d;
+            }
+
+            .result-note {
+                margin-top: 20px;
+                padding: 15px;
+                background: #fff3cd;
+                border-radius: 8px;
+                border: 1px solid #ffeaa7;
+                display: flex;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+            .result-note i {
+                color: #f39c12;
+                font-size: 18px;
+                margin-top: 2px;
+            }
+
+            .result-note p {
+                margin: 0;
+                color: #856404;
+                font-size: 14px;
+                line-height: 1.4;
+            }
+
+            .loading {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 200px;
+                color: #6c757d;
+            }
+
+            .loading i {
+                font-size: 32px;
+                margin-bottom: 15px;
+            }
+        `;
+        results.appendChild(style);
+    }, 1000);
+}
+
+// FAQ раскрытие
+document.querySelectorAll('.faq-question').forEach(question => {
+    question.addEventListener('click', function() {
+        const faqItem = this.parentElement;
+        faqItem.classList.toggle('active');
+    });
+});
+
+// Закрытие модального окна при клике вне его
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('map-modal');
+    if (event.target === modal) {
+        closeMapModal();
+    }
+});
+</script>
+{% endblock %}

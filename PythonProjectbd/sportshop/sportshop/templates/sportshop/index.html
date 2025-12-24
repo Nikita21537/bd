@@ -1,0 +1,727 @@
+<!-- sportshop/templates/sportshop/index.html -->
+{% extends 'sportshop/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="home-container">
+    <!-- Приветствие пользователя (если авторизован) -->
+    {% if user.is_authenticated %}
+    <div class="user-welcome-card">
+        <div class="user-welcome-content">
+            <div class="user-welcome-avatar">
+                {{ user.username|first|upper }}
+            </div>
+            <div class="user-welcome-info">
+                <h2>Добро пожаловать, {{ user.username }}!</h2>
+                <p>Рады видеть вас снова в нашем магазине</p>
+                <div class="user-welcome-stats">
+                    <a href="{% url 'account_orders' %}" class="stat-item">
+                        <i class="fas fa-shopping-bag"></i>
+                        <span>Заказы: {{ orders_count|default:"0" }}</span>
+                    </a>
+                    <a href="{% url 'customer_account' %}" class="stat-item">
+                        <i class="fas fa-star"></i>
+                        <span>Бонусы: {{ bonus_points|default:"0" }}</span>
+                    </a>
+                    <a href="{% url 'cart' %}" class="stat-item">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>В корзине: {{ cart_count|default:"0" }}</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Герой-секция -->
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1>Спорт-магазин</h1>
+            <p>Всё для спорта и активного отдыха</p>
+            <a href="{% url 'catalog' %}" class="btn-hero">Перейти в каталог</a>
+            <a href="{% url 'advanced_search' %}" class="btn-hero-outline">
+                <i class="fas fa-sliders-h"></i> Расширенный поиск
+            </a>
+        </div>
+    </div>
+    
+    <!-- Категории -->
+    <section class="categories-section">
+        <h2>Категории товаров</h2>
+        <div class="categories-grid">
+            {% for category in categories %}
+            <a href="{% url 'catalog' %}?category={{ category.id }}" class="category-card">
+                <div class="category-image">
+                    {% if category.image %}
+                    <img src="{{ category.image }}" alt="{{ category.name }}">
+                    {% else %}
+                    <div class="category-icon">
+                        <i class="fas fa-running"></i>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="category-info">
+                    <h3>{{ category.name }}</h3>
+                    <p>{{ category.description|truncatechars:60|default:"Описание отсутствует" }}</p>
+                    <span class="product-count">{{ category.get_product_count }} товаров</span>
+                </div>
+            </a>
+            {% empty %}
+            <div class="no-categories">
+                <p>Категории пока не добавлены</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    
+    <!-- Популярные товары -->
+    <section class="featured-products">
+        <div class="section-header">
+            <h2>Популярные товары</h2>
+            <a href="{% url 'catalog' %}?sort=popular" class="view-all">Все популярные →</a>
+        </div>
+        
+        <div class="products-grid" id="featured-products">
+            {% for product in featured_products %}
+            <div class="product-card">
+                <a href="{% url 'product_detail' product.id %}" class="product-image">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                    {% else %}
+                        <div class="no-image-placeholder">
+                            <i class="fas fa-image"></i>
+                            <span>Нет изображения</span>
+                        </div>
+                    {% endif %}
+                    
+                    {% if product.discount_price %}
+                    <span class="discount-badge">-{{ product.get_discount_percentage }}%</span>
+                    {% endif %}
+                </a>
+                
+                <div class="product-info">
+                    <a href="{% url 'product_detail' product.id %}" class="product-name">
+                        <h3>{{ product.name|truncatechars:40 }}</h3>
+                    </a>
+                    
+                    <div class="product-category">
+                        {{ product.category.name|default:"Без категории" }}
+                    </div>
+                    
+                    <div class="product-price">
+                        {% if product.discount_price %}
+                        <span class="price-old">{{ product.price }} ₽</span>
+                        <span class="price-new">{{ product.discount_price }} ₽</span>
+                        {% else %}
+                        <span class="price-current">{{ product.price|default:"0" }} ₽</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="product-rating">
+                        <div class="stars">
+                            {% with rating=product.rating|default:0 %}
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= rating %}★{% else %}☆{% endif %}
+                                {% endfor %}
+                            {% endwith %}
+                        </div>
+                        <span class="rating-value">{{ product.rating|default:"0.0" }}</span>
+                        <span class="reviews-count">({{ product.reviews.count|default:"0" }})</span>
+                    </div>
+                    
+                    <div class="product-actions">
+                        {% if product.in_stock %}
+                        <button class="btn-add-to-cart" onclick="addToCart({{ product.id }})">
+                            <i class="fas fa-shopping-cart"></i> В корзину
+                        </button>
+                        <a href="{% url 'product_detail' product.id %}" class="btn-details">
+                            Подробнее
+                        </a>
+                        {% else %}
+                        <button class="btn-out-of-stock" disabled>
+                            Нет в наличии
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="no-products">
+                <i class="fas fa-box-open"></i>
+                <p>Популярные товары пока не добавлены</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    
+    <!-- Товары со скидкой -->
+    {% if discounted_products %}
+    <section class="discounted-products">
+        <div class="section-header">
+            <h2>Товары со скидкой</h2>
+            <a href="{% url 'catalog' %}?has_discount=true" class="view-all">Все акции →</a>
+        </div>
+        
+        <div class="products-grid">
+            {% for product in discounted_products %}
+            <div class="product-card">
+                <a href="{% url 'product_detail' product.id %}" class="product-image">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                    {% else %}
+                        <div class="no-image-placeholder">
+                            <i class="fas fa-image"></i>
+                            <span>Нет изображения</span>
+                        </div>
+                    {% endif %}
+                    <span class="discount-badge">-{{ product.get_discount_percentage|default:"0" }}%</span>
+                </a>
+                
+                <div class="product-info">
+                    <a href="{% url 'product_detail' product.id %}" class="product-name">
+                        <h3>{{ product.name|truncatechars:40 }}</h3>
+                    </a>
+                    
+                    <div class="product-price">
+                        <span class="price-old">{{ product.price|default:"0" }} ₽</span>
+                        <span class="price-new">{{ product.discount_price|default:"0" }} ₽</span>
+                        <div class="saving">Экономия {{ product.get_saving_amount|default:"0" }} ₽</div>
+                    </div>
+                    
+                    <div class="product-actions">
+                        {% if product.in_stock %}
+                        <button class="btn-add-to-cart" onclick="addToCart({{ product.id }})">
+                            <i class="fas fa-shopping-cart"></i> В корзину
+                        </button>
+                        {% else %}
+                        <button class="btn-out-of-stock" disabled>
+                            Нет в наличии
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+
+<style>
+.home-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Приветствие пользователя */
+.user-welcome-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 25px 30px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    box-shadow: var(--shadow);
+}
+
+.user-welcome-content {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.user-welcome-avatar {
+    width: 80px;
+    height: 80px;
+    background: white;
+    color: #667eea;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.user-welcome-info h2 {
+    margin: 0 0 10px 0;
+    font-size: 24px;
+}
+
+.user-welcome-info p {
+    margin: 0 0 20px 0;
+    opacity: 0.9;
+}
+
+.user-welcome-stats {
+    display: flex;
+    gap: 30px;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+    text-decoration: none;
+    padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    transition: background 0.3s;
+}
+
+.stat-item:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.stat-item i {
+    font-size: 20px;
+}
+
+/* Герой-секция */
+.hero-section {
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                url('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1200&q=80');
+    background-size: cover;
+    background-position: center;
+    color: white;
+    padding: 100px 20px;
+    text-align: center;
+    border-radius: 15px;
+    margin-bottom: 40px;
+    position: relative;
+}
+
+.hero-content h1 {
+    font-size: 48px;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.hero-content p {
+    font-size: 20px;
+    margin-bottom: 30px;
+    opacity: 0.9;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.btn-hero {
+    display: inline-block;
+    background: white;
+    color: #667eea;
+    padding: 14px 35px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 18px;
+    margin: 10px;
+    transition: all 0.3s;
+}
+
+.btn-hero:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+.btn-hero-outline {
+    display: inline-block;
+    background: transparent;
+    color: white;
+    border: 2px solid white;
+    padding: 12px 30px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 16px;
+    margin: 10px;
+    transition: all 0.3s;
+}
+
+.btn-hero-outline:hover {
+    background: white;
+    color: #667eea;
+}
+
+/* Категории */
+.categories-section {
+    margin-bottom: 60px;
+}
+
+.categories-section h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 32px;
+    color: #333;
+}
+
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+}
+
+.category-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    text-decoration: none;
+    color: #333;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.category-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+}
+
+.category-image {
+    height: 180px;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.category-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s;
+}
+
+.category-card:hover .category-image img {
+    transform: scale(1.1);
+}
+
+.category-icon {
+    font-size: 60px;
+    color: #667eea;
+}
+
+.category-info {
+    padding: 20px;
+}
+
+.category-info h3 {
+    margin: 0 0 10px 0;
+    font-size: 20px;
+    color: #333;
+}
+
+.category-info p {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+
+.product-count {
+    display: inline-block;
+    background: #667eea;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.no-categories {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 50px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    color: #666;
+}
+
+/* Секции товаров */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #eee;
+}
+
+.section-header h2 {
+    margin: 0;
+    font-size: 28px;
+    color: #333;
+}
+
+.view-all {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 16px;
+    transition: color 0.3s;
+}
+
+.view-all:hover {
+    color: #5a67d8;
+}
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+    margin-bottom: 60px;
+}
+
+.product-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: all 0.3s;
+    position: relative;
+}
+
+.product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+}
+
+.product-image {
+    display: block;
+    height: 220px;
+    overflow: hidden;
+    position: relative;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s;
+}
+
+.product-card:hover .product-image img {
+    transform: scale(1.05);
+}
+
+.no-image-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    color: #6c757d;
+}
+
+.no-image-placeholder i {
+    font-size: 48px;
+    margin-bottom: 10px;
+    opacity: 0.5;
+}
+
+.discount-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: #dc3545;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 1;
+}
+
+.product-info {
+    padding: 20px;
+}
+
+.product-name h3 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    color: #333;
+    line-height: 1.4;
+    height: 44px;
+    overflow: hidden;
+}
+
+.product-category {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 12px;
+}
+
+.product-price {
+    margin: 15px 0;
+}
+
+.price-old {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 14px;
+    margin-right: 10px;
+}
+
+.price-new {
+    color: #dc3545;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.price-current {
+    color: #333;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.saving {
+    color: #28a745;
+    font-size: 13px;
+    margin-top: 5px;
+    font-weight: bold;
+}
+
+.product-rating {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.stars {
+    color: #ffc107;
+    font-size: 16px;
+}
+
+.rating-value {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.reviews-count {
+    color: #666;
+    font-size: 13px;
+}
+
+.product-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-add-to-cart {
+    flex: 1;
+    padding: 10px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s;
+}
+
+.btn-add-to-cart:hover {
+    background: #218838;
+    transform: translateY(-2px);
+}
+
+.btn-details {
+    flex: 1;
+    padding: 10px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.btn-details:hover {
+    background: #0056b3;
+    transform: translateY(-2px);
+}
+
+.btn-out-of-stock {
+    width: 100%;
+    padding: 10px;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: not-allowed;
+    font-size: 14px;
+}
+
+.no-products {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+.no-products i {
+    font-size: 60px;
+    color: #6c757d;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.no-products p {
+    color: #666;
+    font-size: 18px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .user-welcome-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .user-welcome-stats {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .hero-content h1 {
+        font-size: 36px;
+    }
+    
+    .hero-content p {
+        font-size: 18px;
+    }
+    
+    .categories-grid,
+    .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+    
+    .section-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+}
+</style>
+
+<script>
+// Функция для добавления в корзину с главной страницы
+document.addEventListener('DOMContentLoaded', function() {
+    // Используем глобальную функцию addToCart из base.html
+});
+</script>
+{% endblock %}

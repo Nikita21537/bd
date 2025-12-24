@@ -1,0 +1,947 @@
+
+{% extends 'sportshop/base.html' %}
+
+{% block content %}
+<div class="contacts-page">
+    <div class="container">
+        <nav class="breadcrumbs">
+            <a href="{% url 'index' %}">Главная</a> /
+            <span>Контакты</span>
+        </nav>
+
+        <div class="contacts-header">
+            <h1>Контакты</h1>
+            <p class="subtitle">Мы всегда рады помочь и ответить на ваши вопросы</p>
+        </div>
+
+        <div class="contacts-grid">
+            <!-- Контактная информация -->
+            <div class="contacts-section">
+                <div class="contact-card">
+                    <div class="contact-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="contact-info">
+                        <h3>Наш адрес</h3>
+                        <p>г. Москва, ул. Примерная, д. 1</p>
+                        <p class="contact-note">Ближайшая станция метро: "Примерная"</p>
+                    </div>
+                </div>
+
+                <div class="contact-card">
+                    <div class="contact-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <div class="contact-info">
+                        <h3>Телефоны</h3>
+                        <p><a href="tel:+74951234567">+7 (495) 123-45-67</a></p>
+                        <p><a href="tel:+79851234567">+7 (985) 123-45-67</a></p>
+                        <p class="contact-note">Ежедневно с 9:00 до 21:00</p>
+                    </div>
+                </div>
+
+                <div class="contact-card">
+                    <div class="contact-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="contact-info">
+                        <h3>Электронная почта</h3>
+                        <p><a href="mailto:info@sportshop.ru">info@sportshop.ru</a></p>
+                        <p><a href="mailto:support@sportshop.ru">support@sportshop.ru</a></p>
+                        <p class="contact-note">Ответим в течение 24 часов</p>
+                    </div>
+                </div>
+
+                <div class="contact-card">
+                    <div class="contact-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="contact-info">
+                        <h3>Часы работы</h3>
+                        <p>Понедельник - Пятница: 9:00 - 21:00</p>
+                        <p>Суббота - Воскресенье: 10:00 - 20:00</p>
+                        <p class="contact-note">Без перерывов и выходных</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Форма обратной связи -->
+            <div class="contacts-section">
+                <div class="contact-form-card">
+                    <h2><i class="fas fa-comments"></i> Обратная связь</h2>
+                    <p class="form-subtitle">Заполните форму и мы свяжемся с вами в ближайшее время</p>
+
+                    <form class="contact-form" id="contact-form">
+                        <div class="form-group">
+                            <label for="contact-name">Ваше имя *</label>
+                            <input type="text" id="contact-name" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="contact-phone">Телефон *</label>
+                            <input type="tel" id="contact-phone" class="form-input" required
+                                   placeholder="+7 (___) ___-__-__">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="contact-email">Email</label>
+                            <input type="email" id="contact-email" class="form-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="contact-subject">Тема обращения *</label>
+                            <select id="contact-subject" class="form-input" required>
+                                <option value="">Выберите тему</option>
+                                <option value="order">Вопрос по заказу</option>
+                                <option value="delivery">Доставка и самовывоз</option>
+                                <option value="return">Возврат и обмен</option>
+                                <option value="product">Вопрос о товаре</option>
+                                <option value="other">Другое</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="contact-message">Сообщение *</label>
+                            <textarea id="contact-message" class="form-input" rows="5" required
+                                      placeholder="Опишите ваш вопрос подробно..."></textarea>
+                        </div>
+
+                        <div class="form-options">
+                            <label class="checkbox">
+                                <input type="checkbox" id="contact-newsletter">
+                                <span class="checkmark"></span>
+                                <span class="checkbox-label">Подписаться на новости и акции</span>
+                            </label>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> Отправить сообщение
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Карта -->
+        <div class="map-section">
+            <div class="map-container">
+                <div class="map" id="contacts-map">
+                    <div class="map-overlay">
+                        <div class="map-info">
+                            <h3>Как добраться</h3>
+                            <p><i class="fas fa-subway"></i> Метро "Примерная" (выход №5)</p>
+                            <p><i class="fas fa-bus"></i> Автобусы: 123, 456, 789</p>
+                            <p><i class="fas fa-car"></i> Парковка на территории</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Отделы -->
+        <div class="departments-section">
+            <h2><i class="fas fa-users"></i> Наши отделы</h2>
+
+            <div class="departments-grid">
+                <div class="department-card">
+                    <div class="department-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <h3>Отдел продаж</h3>
+                    <p>Консультации по товарам, помощь в выборе, оформление заказов</p>
+                    <div class="department-contact">
+                        <a href="tel:+74951111111">+7 (495) 111-11-11</a>
+                        <a href="mailto:sales@sportshop.ru">sales@sportshop.ru</a>
+                    </div>
+                </div>
+
+                <div class="department-card">
+                    <div class="department-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h3>Служба поддержки</h3>
+                    <p>Помощь по заказам, консультации, решение проблем</p>
+                    <div class="department-contact">
+                        <a href="tel:+74952222222">+7 (495) 222-22-22</a>
+                        <a href="mailto:support@sportshop.ru">support@sportshop.ru</a>
+                    </div>
+                </div>
+
+                <div class="department-card">
+                    <div class="department-icon">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <h3>Отдел доставки</h3>
+                    <p>Вопросы по доставке, отслеживание заказов, курьерская служба</p>
+                    <div class="department-contact">
+                        <a href="tel:+74953333333">+7 (495) 333-33-33</a>
+                        <a href="mailto:delivery@sportshop.ru">delivery@sportshop.ru</a>
+                    </div>
+                </div>
+
+                <div class="department-card">
+                    <div class="department-icon">
+                        <i class="fas fa-undo-alt"></i>
+                    </div>
+                    <h3>Отдел возвратов</h3>
+                    <p>Возврат и обмен товара, гарантийные случаи</p>
+                    <div class="department-contact">
+                        <a href="tel:+74954444444">+7 (495) 444-44-44</a>
+                        <a href="mailto:returns@sportshop.ru">returns@sportshop.ru</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="contacts-faq">
+            <h2><i class="fas fa-question-circle"></i> Часто задаваемые вопросы</h2>
+
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleContactFaq(this)">
+                        <span>Как связаться с менеджером по оптовым закупкам?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Для оптовых покупателей работает специальный отдел.
+                        Позвоните по телефону <a href="tel:+74955555555">+7 (495) 555-55-55</a>
+                        или напишите на <a href="mailto:wholesale@sportshop.ru">wholesale@sportshop.ru</a>.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleContactFaq(this)">
+                        <span>Есть ли у вас call-центр?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Да, наш call-центр работает ежедневно с 8:00 до 22:00.
+                        По телефону <a href="tel:88001234567">8-800-123-45-67</a> вы можете получить
+                        консультацию по любым вопросам (звонок бесплатный).</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleContactFaq(this)">
+                        <span>Как оставить отзыв о работе магазина?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Вы можете оставить отзыв на странице товара, в разделе "Мои отзывы"
+                        в личном кабинете или написать на <a href="mailto:feedback@sportshop.ru">feedback@sportshop.ru</a>.
+                        Мы ценим ваше мнение!</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleContactFaq(this)">
+                        <span>Можно ли заказать товар по телефону?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Да, вы можете оформить заказ по телефону <a href="tel:+74951234567">+7 (495) 123-45-67</a>.
+                        Наш оператор поможет подобрать товар и оформить заказ.
+                        Оплата возможна при получении или банковской картой по телефону.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно успешной отправки -->
+<div class="modal" id="success-modal">
+    <div class="modal-content success-modal">
+        <div class="modal-header">
+            <h3>Сообщение отправлено!</h3>
+            <button class="modal-close" onclick="closeSuccessModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <p>Спасибо за ваше сообщение! Мы получили его и свяжемся с вами в течение 24 часов.</p>
+            <button class="btn btn-primary" onclick="closeSuccessModal()">Понятно</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.contacts-page {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    padding: 40px 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.breadcrumbs {
+    margin-bottom: 30px;
+    color: #6c757d;
+}
+
+.breadcrumbs a {
+    color: #667eea;
+    text-decoration: none;
+}
+
+.breadcrumbs a:hover {
+    text-decoration: underline;
+}
+
+.contacts-header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.contacts-header h1 {
+    font-size: 48px;
+    color: #333;
+    margin-bottom: 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+    font-size: 20px;
+    color: #6c757d;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.contacts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 50px;
+}
+
+@media (max-width: 992px) {
+    .contacts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Контактные карточки */
+.contact-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    border: 1px solid #e9ecef;
+    transition: transform 0.3s;
+}
+
+.contact-card:hover {
+    transform: translateY(-5px);
+}
+
+.contact-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.contact-info h3 {
+    margin: 0 0 10px 0;
+    font-size: 20px;
+    color: #333;
+}
+
+.contact-info p {
+    margin: 0 0 5px 0;
+    color: #6c757d;
+}
+
+.contact-info a {
+    color: #667eea;
+    text-decoration: none;
+}
+
+.contact-info a:hover {
+    text-decoration: underline;
+}
+
+.contact-note {
+    font-size: 14px;
+    color: #868e96;
+    margin-top: 10px !important;
+    padding-top: 10px;
+    border-top: 1px solid #f1f3f5;
+}
+
+/* Форма обратной связи */
+.contact-form-card {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    border: 1px solid #e9ecef;
+}
+
+.contact-form-card h2 {
+    margin: 0 0 10px 0;
+    font-size: 28px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.form-subtitle {
+    color: #6c757d;
+    margin: 0 0 30px 0;
+    font-size: 16px;
+}
+
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #333;
+    font-size: 15px;
+}
+
+.form-input {
+    padding: 14px 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s;
+    background: #f8f9fa;
+}
+
+.form-input:focus {
+    border-color: #667eea;
+    background: white;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+textarea.form-input {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.form-options {
+    margin: 10px 0;
+}
+
+.checkbox {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #495057;
+}
+
+.checkbox input {
+    display: none;
+}
+
+.checkmark {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #dee2e6;
+    border-radius: 4px;
+    position: relative;
+    transition: all 0.3s;
+    flex-shrink: 0;
+}
+
+.checkbox input:checked + .checkmark {
+    background: #667eea;
+    border-color: #667eea;
+}
+
+.checkbox input:checked + .checkmark::after {
+    content: '✓';
+    position: absolute;
+    color: white;
+    font-size: 12px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.checkbox-label {
+    flex: 1;
+}
+
+.form-actions {
+    margin-top: 20px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px 30px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 16px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    width: 100%;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+/* Карта */
+.map-section {
+    margin: 60px 0;
+}
+
+.map-container {
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.map {
+    height: 400px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+}
+
+.map-overlay {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    max-width: 300px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.map-info h3 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 20px;
+}
+
+.map-info p {
+    margin: 0 0 10px 0;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.map-info p i {
+    color: #667eea;
+    width: 20px;
+}
+
+/* Отделы */
+.departments-section {
+    margin: 60px 0;
+}
+
+.departments-section h2 {
+    text-align: center;
+    font-size: 32px;
+    color: #333;
+    margin-bottom: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.departments-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+}
+
+.department-card {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    border: 1px solid #e9ecef;
+    transition: all 0.3s;
+}
+
+.department-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+}
+
+.department-icon {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    margin: 0 auto 20px;
+}
+
+.department-card h3 {
+    margin: 0 0 15px 0;
+    font-size: 20px;
+    color: #333;
+}
+
+.department-card p {
+    color: #6c757d;
+    font-size: 15px;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+.department-contact {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.department-contact a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.department-contact a:hover {
+    text-decoration: underline;
+}
+
+/* FAQ */
+.contacts-faq {
+    margin: 60px 0;
+}
+
+.contacts-faq h2 {
+    text-align: center;
+    font-size: 32px;
+    color: #333;
+    margin-bottom: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.faq-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .faq-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.faq-item {
+    background: white;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+    overflow: hidden;
+}
+
+.faq-question {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    background: #f8f9fa;
+    transition: all 0.3s;
+}
+
+.faq-question:hover {
+    background: #e9ecef;
+}
+
+.faq-question span {
+    font-weight: 500;
+    color: #333;
+    font-size: 16px;
+    flex: 1;
+}
+
+.faq-question i {
+    color: #6c757d;
+    transition: transform 0.3s;
+}
+
+.faq-item.active .faq-question i {
+    transform: rotate(180deg);
+}
+
+.faq-answer {
+    padding: 0 20px;
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.3s;
+}
+
+.faq-item.active .faq-answer {
+    padding: 20px;
+    max-height: 500px;
+}
+
+.faq-answer p {
+    margin: 0;
+    color: #6c757d;
+    line-height: 1.6;
+}
+
+.faq-answer a {
+    color: #667eea;
+    text-decoration: none;
+}
+
+.faq-answer a:hover {
+    text-decoration: underline;
+}
+
+/* Модальное окно */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.success-modal {
+    background: white;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 500px;
+    overflow: hidden;
+}
+
+.modal-header {
+    padding: 25px 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s;
+}
+
+.modal-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-body {
+    padding: 40px 30px;
+    text-align: center;
+}
+
+.success-icon {
+    width: 80px;
+    height: 80px;
+    background: #d4edda;
+    color: #28a745;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    margin: 0 auto 20px;
+}
+
+.modal-body p {
+    color: #6c757d;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    font-size: 16px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .contacts-header h1 {
+        font-size: 36px;
+    }
+
+    .contact-form-card {
+        padding: 25px;
+    }
+
+    .contact-form-card h2 {
+        font-size: 24px;
+    }
+
+    .departments-section h2,
+    .contacts-faq h2 {
+        font-size: 24px;
+    }
+
+    .map-overlay {
+        position: static;
+        max-width: 100%;
+        margin: 20px;
+    }
+}
+</style>
+
+<script>
+// Маска для телефона
+document.getElementById('contact-phone').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 0) {
+        value = '+7 (' + value.substring(1, 4) + ') ' +
+                value.substring(4, 7) + '-' +
+                value.substring(7, 9) + '-' +
+                value.substring(9, 11);
+    }
+    e.target.value = value;
+});
+
+// Обработка формы
+document.getElementById('contact-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    // Валидация
+    const name = document.getElementById('contact-name').value.trim();
+    const phone = document.getElementById('contact-phone').value.trim();
+    const subject = document.getElementById('contact-subject').value;
+    const message = document.getElementById('contact-message').value.trim();
+
+    if (!name) {
+        alert('Введите ваше имя');
+        return;
+    }
+
+    if (!phone) {
+        alert('Введите телефон');
+        return;
+    }
+
+    // Проверка формата телефона
+    const phoneRegex = /^\+7\s\(\d{3}\)\s\d{3}-\d{2}-\d{2}$/;
+    if (!phoneRegex.test(phone)) {
+        alert('Введите корректный номер телефона');
+        return;
+    }
+
+    if (!subject) {
+        alert('Выберите тему обращения');
+        return;
+    }
+
+    if (!message) {
+        alert('Введите сообщение');
+        return;
+    }
+
+    // Имитация отправки
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
+    submitBtn.disabled = true;
+
+    setTimeout(() => {
+        // Показываем модальное окно успеха
+        document.getElementById('success-modal').style.display = 'flex';
+
+        // Сбрасываем форму
+        this.reset();
+
+        // Возвращаем кнопку в исходное состояние
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }, 1500);
+});
+
+// FAQ
+function toggleContactFaq(element) {
+    const faqItem = element.parentElement;
+    faqItem.classList.toggle('active');
+}
+
+// Модальное окно
+function closeSuccessModal() {
+    document.getElementById('success-modal').style.display = 'none';
+}
+
+// Закрытие модального окна при клике вне его
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('success-modal');
+    if (event.target === modal) {
+        closeSuccessModal();
+    }
+});
+</script>
+{% endblock %}

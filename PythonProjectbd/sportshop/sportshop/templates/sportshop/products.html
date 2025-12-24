@@ -1,0 +1,941 @@
+<!-- sportshop/templates/sportshop/admin/products.html -->
+{% extends 'sportshop/base.html' %}
+
+{% block content %}
+<div class="admin-container">
+    <!-- Боковая панель админа -->
+    <div class="admin-sidebar">
+        <div class="admin-user-info">
+            <div class="admin-user-avatar">
+                {{ user.username|first|upper }}
+            </div>
+            <div class="admin-user-details">
+                <h4>{{ user.username }}</h4>
+                <p class="user-role">
+                    {% if user.is_superuser %}
+                    Суперадминистратор
+                    {% elif 'administrator' in user_groups %}
+                    Администратор
+                    {% elif 'manager' in user_groups %}
+                    Менеджер
+                    {% else %}
+                    Пользователь
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <ul class="admin-menu">
+            <li><a href="{% url 'admin_dashboard' %}">
+                <i class="fas fa-tachometer-alt"></i> Дашборд
+            </a></li>
+            <li><a href="{% url 'admin_products' %}" class="active">
+                <i class="fas fa-box"></i> Товары
+            </a></li>
+            <li><a href="{% url 'admin_orders' %}">
+                <i class="fas fa-shopping-cart"></i> Заказы
+            </a></li>
+            <li><a href="{% url 'admin_order_history' %}">
+                <i class="fas fa-history"></i> История заказов
+            </a></li>
+            <li><a href="{% url 'admin_users' %}">
+                <i class="fas fa-users"></i> Пользователи
+            </a></li>
+            <li><a href="{% url 'customer_account' %}">
+                <i class="fas fa-user"></i> Личный кабинет
+            </a></li>
+            <li><a href="{% url 'home' %}">
+                <i class="fas fa-home"></i> На сайт
+            </a></li>
+        </ul>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="admin-content">
+        <div class="admin-header">
+            <div class="header-left">
+                <h1>Управление товарами</h1>
+                <p>Всего товаров: {{ total_products }}</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="showAddProductModal()">
+                    <i class="fas fa-plus"></i> Добавить товар
+                </button>
+                <button class="btn btn-outline">
+                    <i class="fas fa-download"></i> Экспорт
+                </button>
+            </div>
+        </div>
+
+        <!-- Фильтры и поиск -->
+        <div class="filters-section">
+            <form method="get" class="filters-form">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <input type="text" name="q" placeholder="Поиск по названию, артикулу..."
+                               value="{{ request.GET.q|default:'' }}" class="search-input">
+                    </div>
+
+                    <div class="filter-group">
+                        <select name="category" class="filter-select">
+                            <option value="all">Все категории</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}"
+                                    {% if request.GET.category == category.id|stringformat:'i' %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <select name="in_stock" class="filter-select">
+                            <option value="all">Все товары</option>
+                            <option value="true" {% if request.GET.in_stock == 'true' %}selected{% endif %}>В наличии</option>
+                            <option value="false" {% if request.GET.in_stock == 'false' %}selected{% endif %}>Нет в наличии</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Найти
+                        </button>
+                        <a href="{% url 'admin_products' %}" class="btn btn-outline">
+                            Сбросить
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Таблица товаров -->
+        <div class="table-section">
+            <div class="table-responsive">
+                <table class="products-table">
+                    <thead>
+                        <tr>
+                            <th width="50">ID</th>
+                            <th width="80">Фото</th>
+                            <th>Название товара</th>
+                            <th width="120">Категория</th>
+                            <th width="100">Цена</th>
+                            <th width="100">Остаток</th>
+                            <th width="120">Статус</th>
+                            <th width="150">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr>
+                            <td>{{ product.id }}</td>
+                            <td>
+                                <div class="product-thumb">
+                                    {% if product.image %}
+                                    <img src="{{ product.image.url }}" alt="{{ product.name }}"
+                                         onclick="showImageModal('{{ product.image.url }}', '{{ product.name }}')">
+                                    {% else %}
+                                    <div class="no-thumb" onclick="showImageModal('', '{{ product.name }}')">
+                                        <i class="fas fa-image"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="product-info-cell">
+                                    <strong>{{ product.name }}</strong>
+                                    <div class="product-sku">
+                                        Артикул: {{ product.sku|default:"-" }}
+                                    </div>
+                                    <div class="product-desc">
+                                        {{ product.short_description|truncatechars:60|default:"-" }}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="category-badge">
+                                    {{ product.category.name|default:"Без категории" }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="price-cell">
+                                    {% if product.discount_price %}
+                                    <span class="price-old">{{ product.price }} ₽</span>
+                                    <span class="price-new">{{ product.discount_price }} ₽</span>
+                                    <div class="discount-percent">
+                                        -{{ product.get_discount_percentage }}%
+                                    </div>
+                                    {% else %}
+                                    <span class="price-regular">{{ product.price }} ₽</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="stock-cell">
+                                    <div class="stock-amount">{{ product.stock_quantity }} шт.</div>
+                                    {% if product.stock_quantity < 10 %}
+                                    <div class="stock-warning">Мало осталось</div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                {% if product.in_stock %}
+                                <span class="status-badge status-success">
+                                    <i class="fas fa-check-circle"></i> В наличии
+                                </span>
+                                {% else %}
+                                <span class="status-badge status-danger">
+                                    <i class="fas fa-times-circle"></i> Нет в наличии
+                                </span>
+                                {% endif %}
+                                <br>
+                                <small class="status-text">
+                                    {% if product.is_active %}
+                                    <i class="fas fa-eye"></i> Активен
+                                    {% else %}
+                                    <i class="fas fa-eye-slash"></i> Скрыт
+                                    {% endif %}
+                                </small>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="{% url 'product_detail' product.id %}"
+                                       class="btn-action btn-view" title="Просмотр на сайте">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button class="btn-action btn-edit"
+                                            onclick="editProduct({{ product.id }})"
+                                            title="Редактировать">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-action btn-delete"
+                                            onclick="deleteProduct({{ product.id }}, '{{ product.name }}')"
+                                            title="Удалить">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    <button class="btn-action btn-more" title="Ещё">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8">
+                                <div class="empty-state">
+                                    <i class="fas fa-box-open"></i>
+                                    <h3>Товары не найдены</h3>
+                                    <p>Попробуйте изменить параметры поиска или добавьте новый товар</p>
+                                    <button class="btn btn-primary" onclick="showAddProductModal()">
+                                        <i class="fas fa-plus"></i> Добавить первый товар
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Пагинация -->
+            {% if products.has_other_pages %}
+            <div class="pagination-wrapper">
+                <div class="pagination-info">
+                    Показано {{ products.start_index }} - {{ products.end_index }} из {{ products.paginator.count }}
+                </div>
+                <div class="pagination">
+                    {% if products.has_previous %}
+                    <a href="?page={{ products.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+                       class="page-link">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                    {% endif %}
+
+                    {% for num in products.paginator.page_range %}
+                        {% if products.number == num %}
+                        <span class="page-current">{{ num }}</span>
+                        {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+                        <a href="?page={{ num }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+                           class="page-link">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if products.has_next %}
+                    <a href="?page={{ products.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+                       class="page-link">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно добавления/редактирования товара -->
+<div id="productModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Добавить новый товар</h3>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <!-- Форма будет загружена через AJAX -->
+            <div id="modal-form-container">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i> Загрузка...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно изображения -->
+<div id="imageModal" class="modal image-modal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeImageModal()">&times;</button>
+        <div class="modal-body">
+            <img id="modalImage" src="" alt="">
+            <div id="imageCaption"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Основные стили из dashboard.html */
+
+/* Специфичные стили для страницы товаров */
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 30px;
+}
+
+.header-left h1 {
+    margin: 0 0 10px 0;
+    font-size: 28px;
+    color: #333;
+}
+
+.header-left p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* Фильтры */
+.filters-section {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.filters-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.filter-row {
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.search-input, .filter-select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.search-input:focus, .filter-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    outline: none;
+}
+
+/* Таблица товаров */
+.table-section {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+}
+
+.products-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.products-table th {
+    background: #f8f9fa;
+    padding: 18px 15px;
+    text-align: left;
+    font-weight: 600;
+    color: #555;
+    border-bottom: 2px solid #eee;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.products-table td {
+    padding: 15px;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+}
+
+.products-table tr:hover {
+    background: #fafafa;
+}
+
+.product-thumb {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    background: #f8f9fa;
+}
+
+.product-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.product-thumb img:hover {
+    transform: scale(1.1);
+}
+
+.no-thumb {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ccc;
+    font-size: 20px;
+}
+
+.product-info-cell strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #333;
+    font-size: 15px;
+}
+
+.product-sku {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 5px;
+}
+
+.product-desc {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.4;
+}
+
+.category-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    background: #e9ecef;
+    color: #495057;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.price-cell {
+    font-size: 14px;
+}
+
+.price-old {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 12px;
+    display: block;
+}
+
+.price-new {
+    color: #dc3545;
+    font-weight: bold;
+    font-size: 16px;
+    display: block;
+}
+
+.price-regular {
+    color: #333;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.discount-percent {
+    color: #28a745;
+    font-size: 11px;
+    font-weight: bold;
+    background: #d4edda;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-top: 5px;
+    display: inline-block;
+}
+
+.stock-cell {
+    font-size: 14px;
+}
+
+.stock-amount {
+    color: #333;
+    font-weight: 500;
+}
+
+.stock-warning {
+    color: #dc3545;
+    font-size: 11px;
+    margin-top: 5px;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-danger {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.status-text {
+    color: #888;
+    font-size: 11px;
+    margin-top: 5px;
+    display: block;
+}
+
+/* Кнопки действий */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-action {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 14px;
+}
+
+.btn-view {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.btn-view:hover {
+    background: #495057;
+    color: white;
+}
+
+.btn-edit {
+    background: #cfe2ff;
+    color: #084298;
+}
+
+.btn-edit:hover {
+    background: #084298;
+    color: white;
+}
+
+.btn-delete {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.btn-delete:hover {
+    background: #721c24;
+    color: white;
+}
+
+.btn-more {
+    background: #f8f9fa;
+    color: #6c757d;
+}
+
+.btn-more:hover {
+    background: #6c757d;
+    color: white;
+}
+
+/* Пустое состояние */
+.empty-state {
+    text-align: center;
+    padding: 50px 20px;
+}
+
+.empty-state i {
+    font-size: 60px;
+    color: #ddd;
+    margin-bottom: 20px;
+}
+
+.empty-state h3 {
+    margin: 0 0 10px 0;
+    color: #666;
+    font-size: 18px;
+}
+
+.empty-state p {
+    margin: 0 0 20px 0;
+    color: #888;
+    font-size: 14px;
+}
+
+/* Пагинация */
+.pagination-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-top: 1px solid #eee;
+    background: #fafafa;
+}
+
+.pagination-info {
+    color: #666;
+    font-size: 14px;
+}
+
+.pagination {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.page-link, .page-current {
+    min-width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.page-link {
+    background: white;
+    color: #667eea;
+    border: 1px solid #dee2e6;
+    transition: all 0.3s;
+}
+
+.page-link:hover {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.page-current {
+    background: #667eea;
+    color: white;
+}
+
+/* Модальные окна */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+    padding: 25px 30px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 20px;
+    color: #333;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s;
+}
+
+.modal-close:hover {
+    background: #f8f9fa;
+    color: #333;
+}
+
+.modal-body {
+    padding: 30px;
+    overflow-y: auto;
+    max-height: calc(90vh - 80px);
+}
+
+/* Модальное окно изображения */
+.image-modal .modal-content {
+    max-width: 90%;
+    max-height: 90%;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+.image-modal .modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    z-index: 10001;
+}
+
+.image-modal .modal-close:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.image-modal img {
+    max-width: 100%;
+    max-height: 70vh;
+    display: block;
+    margin: 0 auto;
+    border-radius: 8px;
+}
+
+.image-modal #imageCaption {
+    text-align: center;
+    color: white;
+    margin-top: 15px;
+    font-size: 16px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Адаптивность */
+@media (max-width: 1200px) {
+    .admin-container {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-sidebar {
+        margin-bottom: 30px;
+    }
+}
+
+@media (max-width: 992px) {
+    .filter-row {
+        flex-direction: column;
+    }
+
+    .filter-group {
+        min-width: 100%;
+    }
+
+    .products-table {
+        display: block;
+        overflow-x: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .pagination-wrapper {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+}
+</style>
+
+<script>
+// Функции для работы с модальными окнами
+function showAddProductModal() {
+    const modal = document.getElementById('productModal');
+    const formContainer = document.getElementById('modal-form-container');
+
+    // Загружаем форму через AJAX
+    formContainer.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Загрузка...</div>';
+
+    fetch('/admin/products/add/')  // Нужно будет создать этот URL
+        .then(response => response.text())
+        .then(html => {
+            formContainer.innerHTML = html;
+            modal.style.display = 'flex';
+        })
+        .catch(error => {
+            formContainer.innerHTML = '<div class="error">Ошибка загрузки формы</div>';
+        });
+}
+
+function editProduct(productId) {
+    const modal = document.getElementById('productModal');
+    const formContainer = document.getElementById('modal-form-container');
+
+    formContainer.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Загрузка...</div>';
+
+    fetch(`/admin/products/${productId}/edit/`)  // Нужно будет создать этот URL
+        .then(response => response.text())
+        .then(html => {
+            formContainer.innerHTML = html;
+            modal.style.display = 'flex';
+        })
+        .catch(error => {
+            formContainer.innerHTML = '<div class="error">Ошибка загрузки формы</div>';
+        });
+}
+
+function deleteProduct(productId, productName) {
+    if (confirm(`Вы уверены, что хотите удалить товар "${productName}"?`)) {
+        fetch(`/admin/products/${productId}/delete/`, {  // Нужно будет создать этот URL
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Товар успешно удален');
+                location.reload();
+            } else {
+                alert('Ошибка при удалении товара');
+            }
+        })
+        .catch(error => {
+            alert('Ошибка соединения');
+        });
+    }
+}
+
+function closeModal() {
+    document.getElementById('productModal').style.display = 'none';
+}
+
+function showImageModal(imageUrl, productName) {
+    const modal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    const imageCaption = document.getElementById('imageCaption');
+
+    if (imageUrl) {
+        modalImage.src = imageUrl;
+        modalImage.style.display = 'block';
+        imageCaption.textContent = productName;
+    } else {
+        modalImage.style.display = 'none';
+        imageCaption.textContent = productName + ' (нет изображения)';
+    }
+
+    modal.style.display = 'flex';
+}
+
+function closeImageModal() {
+    document.getElementById('imageModal').style.display = 'none';
+}
+
+// Вспомогательная функция для получения CSRF токена
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Закрытие модальных окон при клике вне их
+window.onclick = function(event) {
+    const productModal = document.getElementById('productModal');
+    const imageModal = document.getElementById('imageModal');
+
+    if (event.target == productModal) {
+        closeModal();
+    }
+    if (event.target == imageModal) {
+        closeImageModal();
+    }
+}
+</script>
+{% endblock %}

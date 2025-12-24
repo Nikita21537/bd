@@ -1,0 +1,824 @@
+<!-- 7. returns.html -->
+<!-- sportshop/templates/sportshop/returns.html -->
+{% extends 'sportshop/base.html' %}
+
+{% block content %}
+<div class="returns-page">
+    <div class="container">
+        <nav class="breadcrumbs">
+            <a href="{% url 'index' %}">Главная</a> /
+            <span>Возврат товара</span>
+        </nav>
+
+        <div class="returns-header">
+            <h1>Возврат товара</h1>
+            <p class="subtitle">Простой и понятный процесс возврата товаров</p>
+        </div>
+
+        <div class="returns-main">
+            <!-- Процесс возврата -->
+            <div class="returns-section">
+                <h2><i class="fas fa-exchange-alt"></i> Как вернуть товар</h2>
+
+                <div class="process-steps">
+                    <div class="process-step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Подайте заявку на возврат</h3>
+                            <p>В личном кабинете выберите заказ и товары для возврата, укажите причину</p>
+                        </div>
+                    </div>
+
+                    <div class="process-step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Подготовьте товар</h3>
+                            <p>Упакуйте товар в оригинальную упаковку со всеми ярлыками и аксессуарами</p>
+                        </div>
+                    </div>
+
+                    <div class="process-step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Ожидайте курьера</h3>
+                            <p>Наш курьер заберет товар в удобное для вас время</p>
+                        </div>
+                    </div>
+
+                    <div class="process-step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>Получите деньги</h3>
+                            <p>После проверки товара мы вернем деньги тем же способом, которым вы платили</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Условия возврата -->
+            <div class="returns-section">
+                <h2><i class="fas fa-file-contract"></i> Условия возврата</h2>
+
+                <div class="conditions-grid">
+                    <div class="condition-card">
+                        <div class="condition-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div class="condition-content">
+                            <h3>14 дней на возврат</h3>
+                            <p>Вы можете вернуть товар в течение 14 дней с момента получения заказа</p>
+                        </div>
+                    </div>
+
+                    <div class="condition-card">
+                        <div class="condition-icon">
+                            <i class="fas fa-box-open"></i>
+                        </div>
+                        <div class="condition-content">
+                            <h3>Оригинальное состояние</h3>
+                            <p>Товар должен быть в оригинальной упаковке со всеми бирками и без следов использования</p>
+                        </div>
+                    </div>
+
+                    <div class="condition-card">
+                        <div class="condition-icon">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                        <div class="condition-content">
+                            <h3>Наличие чека</h3>
+                            <p>Сохраните товарный или кассовый чек, он понадобится для возврата</p>
+                        </div>
+                    </div>
+
+                    <div class="condition-card">
+                        <div class="condition-icon">
+                            <i class="fas fa-ban"></i>
+                        </div>
+                        <div class="condition-content">
+                            <h3>Товары не подлежащие возврату</h3>
+                            <p>Нижнее белье, средства гигиены, индивидуально изготовленные товары</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Частые вопросы -->
+            <div class="returns-section">
+                <h2><i class="fas fa-question-circle"></i> Частые вопросы</h2>
+
+                <div class="faq-list">
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <span>Как подать заявку на возврат?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Зайдите в личный кабинет → "Мои заказы" → выберите заказ → нажмите "Вернуть товар".
+                            Выберите товары для возврата, укажите причину и подтвердите заявку.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <span>Сколько времени занимает возврат денег?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>После получения товара на нашем складе и его проверки, возврат денег осуществляется
+                            в течение 3-10 рабочих дней, в зависимости от способа оплаты.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <span>Можно ли вернуть товар без объяснения причины?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Да, согласно закону о защите прав потребителей, вы можете вернуть товар
+                            надлежащего качества в течение 14 дней без объяснения причины.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <span>Кто оплачивает доставку при возврате?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>При возврате товара надлежащего качества доставку оплачивает покупатель.
+                            При возврате бракованного товара или товара ненадлежащего качества - доставку оплачиваем мы.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Форма возврата -->
+            <div class="returns-section">
+                <h2><i class="fas fa-undo-alt"></i> Начать возврат</h2>
+
+                <div class="return-form-section">
+                    <div class="form-card">
+                        <h3>Выберите заказ для возврата</h3>
+
+                        <div class="orders-list">
+                            {% if orders %}
+                            {% for order in orders %}
+                            <div class="order-option" onclick="selectOrder({{ order.id }})">
+                                <div class="order-info">
+                                    <div class="order-number">Заказ #{{ order.order_number }}</div>
+                                    <div class="order-date">{{ order.created_at|date:"d.m.Y" }}</div>
+                                    <div class="order-total">{{ order.total_amount }} ₽</div>
+                                </div>
+                                <button class="btn-select-order" onclick="event.stopPropagation(); selectOrder({{ order.id }})">
+                                    Выбрать
+                                </button>
+                            </div>
+                            {% endfor %}
+                            {% else %}
+                            <div class="no-orders">
+                                <i class="fas fa-shopping-bag"></i>
+                                <p>У вас нет подходящих заказов для возврата</p>
+                                <a href="{% url 'account_orders' %}" class="btn">Перейти к заказам</a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-card" id="return-form" style="display: none;">
+                        <h3>Форма возврата</h3>
+                        <form id="return-request-form">
+                            <div class="form-group">
+                                <label>Выбранный заказ</label>
+                                <div id="selected-order-info" class="selected-order"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Выберите товары для возврата *</label>
+                                <div id="products-list" class="products-checklist"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="return-reason">Причина возврата *</label>
+                                <select id="return-reason" class="form-input" required>
+                                    <option value="">Выберите причину</option>
+                                    <option value="size">Не подошел размер</option>
+                                    <option value="color">Не понравился цвет</option>
+                                    <option value="quality">Не устраивает качество</option>
+                                    <option value="defect">Бракованный товар</option>
+                                    <option value="other">Другая причина</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="return-description">Описание проблемы</label>
+                                <textarea id="return-description" class="form-input" rows="4"
+                                          placeholder="Опишите подробнее причину возврата..."></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="return-phone">Контактный телефон *</label>
+                                <input type="tel" id="return-phone" class="form-input" required
+                                       placeholder="+7 (___) ___-__-__">
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane"></i> Отправить заявку
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="resetReturnForm()">
+                                    Отмена
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.returns-page {
+    background: #f8f9fa;
+    min-height: 100vh;
+    padding: 40px 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.breadcrumbs {
+    margin-bottom: 30px;
+    color: #6c757d;
+}
+
+.breadcrumbs a {
+    color: #667eea;
+    text-decoration: none;
+}
+
+.breadcrumbs a:hover {
+    text-decoration: underline;
+}
+
+.returns-header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.returns-header h1 {
+    font-size: 42px;
+    color: #333;
+    margin-bottom: 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+    font-size: 18px;
+    color: #6c757d;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.returns-section {
+    margin-bottom: 60px;
+}
+
+.returns-section h2 {
+    font-size: 32px;
+    color: #333;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Процесс возврата */
+.process-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+}
+
+.process-step {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    border: 1px solid #e9ecef;
+    position: relative;
+    transition: transform 0.3s;
+}
+
+.process-step:hover {
+    transform: translateY(-5px);
+}
+
+.step-number {
+    position: absolute;
+    top: -20px;
+    left: 30px;
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.step-content {
+    margin-top: 10px;
+}
+
+.step-content h3 {
+    margin: 0 0 15px 0;
+    font-size: 20px;
+    color: #333;
+}
+
+.step-content p {
+    margin: 0;
+    color: #6c757d;
+    line-height: 1.6;
+}
+
+/* Условия возврата */
+.conditions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+}
+
+.condition-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    border: 1px solid #e9ecef;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.condition-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.condition-content h3 {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+    color: #333;
+}
+
+.condition-content p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Частые вопросы */
+.faq-list {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.faq-item {
+    background: white;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    overflow: hidden;
+    border: 1px solid #e9ecef;
+}
+
+.faq-question {
+    padding: 20px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 500;
+    color: #333;
+    transition: all 0.3s;
+}
+
+.faq-question:hover {
+    background: #f8f9fa;
+}
+
+.faq-question i {
+    transition: transform 0.3s;
+}
+
+.faq-item.active .faq-question i {
+    transform: rotate(180deg);
+}
+
+.faq-answer {
+    padding: 0 25px;
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.3s;
+}
+
+.faq-item.active .faq-answer {
+    padding: 0 25px 20px 25px;
+    max-height: 500px;
+}
+
+.faq-answer p {
+    margin: 0;
+    color: #6c757d;
+    line-height: 1.6;
+}
+
+/* Форма возврата */
+.return-form-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+
+@media (max-width: 992px) {
+    .return-form-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+.form-card {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    border: 1px solid #e9ecef;
+}
+
+.form-card h3 {
+    margin: 0 0 25px 0;
+    font-size: 22px;
+    color: #333;
+}
+
+.orders-list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.order-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.order-option:hover {
+    border-color: #667eea;
+    background: #f8f9fa;
+}
+
+.order-option.selected {
+    border-color: #667eea;
+    background: rgba(102, 126, 234, 0.05);
+}
+
+.order-info {
+    flex: 1;
+}
+
+.order-number {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.order-date {
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.order-total {
+    font-weight: 600;
+    color: #667eea;
+    font-size: 18px;
+}
+
+.btn-select-order {
+    padding: 10px 25px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-select-order:hover {
+    background: #5a67d8;
+    transform: translateY(-2px);
+}
+
+.no-orders {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.no-orders i {
+    font-size: 48px;
+    color: #ddd;
+    margin-bottom: 20px;
+}
+
+.no-orders p {
+    color: #6c757d;
+    margin-bottom: 20px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 25px;
+    background: #667eea;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn:hover {
+    background: #5a67d8;
+    transform: translateY(-2px);
+}
+
+.btn-primary {
+    background: #667eea;
+}
+
+.btn-primary:hover {
+    background: #5a67d8;
+}
+
+.btn-secondary {
+    background: #6c757d;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+/* Форма возврата */
+.selected-order {
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.products-checklist {
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.product-check-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.product-check-item:last-child {
+    border-bottom: none;
+}
+
+.product-check-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+}
+
+.product-info {
+    flex: 1;
+}
+
+.product-name {
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.product-price {
+    color: #667eea;
+    font-weight: 600;
+}
+
+.form-input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s;
+    background: #f8f9fa;
+}
+
+.form-input:focus {
+    border-color: #667eea;
+    background: white;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+@media (max-width: 768px) {
+    .returns-header h1 {
+        font-size: 32px;
+    }
+
+    .returns-section h2 {
+        font-size: 24px;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+
+<script>
+// Раскрытие FAQ
+function toggleFaq(element) {
+    const faqItem = element.parentElement;
+    faqItem.classList.toggle('active');
+}
+
+// Выбор заказа для возврата
+function selectOrder(orderId) {
+    // Снимаем выделение со всех заказов
+    document.querySelectorAll('.order-option').forEach(item => {
+        item.classList.remove('selected');
+    });
+
+    // Выделяем выбранный заказ
+    const selectedOrder = event.target.closest('.order-option');
+    selectedOrder.classList.add('selected');
+
+    // Загружаем информацию о заказе и товарах
+    loadOrderDetails(orderId);
+
+    // Показываем форму возврата
+    document.getElementById('return-form').style.display = 'block';
+    document.getElementById('return-form').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Загрузка деталей заказа
+function loadOrderDetails(orderId) {
+    // Здесь будет AJAX запрос для получения информации о заказе
+    // Для примера используем mock данные
+    const orderInfo = {
+        id: orderId,
+        number: 'ORD-2024-00123',
+        date: '15.01.2024',
+        total: '12,450 ₽',
+        products: [
+            { id: 1, name: 'Кроссовки Nike Air Max', price: '8,990 ₽' },
+            { id: 2, name: 'Футболка спортивная', price: '2,450 ₽' },
+            { id: 3, name: 'Шорты для бега', price: '1,990 ₽' }
+        ]
+    };
+
+    // Обновляем информацию о выбранном заказе
+    document.getElementById('selected-order-info').innerHTML = `
+        <div><strong>Заказ #${orderInfo.number}</strong></div>
+        <div>Дата: ${orderInfo.date}</div>
+        <div>Сумма: ${orderInfo.total}</div>
+    `;
+
+    // Обновляем список товаров
+    const productsList = document.getElementById('products-list');
+    productsList.innerHTML = '';
+
+    orderInfo.products.forEach(product => {
+        const productItem = document.createElement('div');
+        productItem.className = 'product-check-item';
+        productItem.innerHTML = `
+            <input type="checkbox" id="product-${product.id}" name="products[]" value="${product.id}">
+            <div class="product-info">
+                <div class="product-name">${product.name}</div>
+                <div class="product-price">${product.price}</div>
+            </div>
+        `;
+        productsList.appendChild(productItem);
+    });
+}
+
+// Сброс формы возврата
+function resetReturnForm() {
+    document.querySelectorAll('.order-option').forEach(item => {
+        item.classList.remove('selected');
+    });
+    document.getElementById('return-form').style.display = 'none';
+    document.getElementById('return-request-form').reset();
+}
+
+// Обработка формы возврата
+document.getElementById('return-request-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    // Валидация формы
+    const selectedProducts = document.querySelectorAll('input[name="products[]"]:checked');
+    if (selectedProducts.length === 0) {
+        alert('Выберите хотя бы один товар для возврата');
+        return;
+    }
+
+    if (!document.getElementById('return-reason').value) {
+        alert('Выберите причину возврата');
+        return;
+    }
+
+    if (!document.getElementById('return-phone').value) {
+        alert('Введите контактный телефон');
+        return;
+    }
+
+    // Имитация отправки формы
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
+    submitBtn.disabled = true;
+
+    setTimeout(() => {
+        alert('Заявка на возврат успешно отправлена! Мы свяжемся с вами в течение 24 часов.');
+        resetReturnForm();
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }, 1500);
+});
+
+// Маска для телефона
+document.getElementById('return-phone').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 0) {
+        value = '+7 (' + value.substring(1, 4) + ') ' +
+                value.substring(4, 7) + '-' +
+                value.substring(7, 9) + '-' +
+                value.substring(9, 11);
+    }
+    e.target.value = value;
+});
+</script>
+{% endblock %}

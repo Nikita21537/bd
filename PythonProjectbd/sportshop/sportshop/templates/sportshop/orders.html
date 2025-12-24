@@ -1,0 +1,1596 @@
+<!-- sportshop/templates/sportshop/orders.html -->
+{% extends 'sportshop/base.html' %}
+
+{% block content %}
+<div class="admin-container">
+    <!-- Боковая панель админа -->
+    <div class="admin-sidebar">
+        <div class="admin-user-info">
+            <div class="admin-user-avatar">
+                {{ user.username|first|upper }}
+            </div>
+            <div class="admin-user-details">
+                <h4>{{ user.username }}</h4>
+                <p class="user-role">
+                    {% if user.is_superuser %}
+                    Суперадминистратор
+                    {% elif 'administrator' in user_groups %}
+                    Администратор
+                    {% elif 'manager' in user_groups %}
+                    Менеджер
+                    {% else %}
+                    Пользователь
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <ul class="admin-menu">
+            <li><a href="{% url 'admin_dashboard' %}">
+                <i class="fas fa-tachometer-alt"></i> Дашборд
+            </a></li>
+            <li><a href="{% url 'admin_products' %}">
+                <i class="fas fa-box"></i> Товары
+            </a></li>
+            <li><a href="{% url 'admin_orders' %}" class="active">
+                <i class="fas fa-shopping-cart"></i> Заказы
+            </a></li>
+            <li><a href="{% url 'admin_order_history' %}">
+                <i class="fas fa-history"></i> История заказов
+            </a></li>
+            <li><a href="{% url 'admin_users' %}">
+                <i class="fas fa-users"></i> Пользователи
+            </a></li>
+            <li><a href="{% url 'customer_account' %}">
+                <i class="fas fa-user"></i> Личный кабинет
+            </a></li>
+            <li><a href="{% url 'home' %}">
+                <i class="fas fa-home"></i> На сайт
+            </a></li>
+        </ul>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="admin-content">
+        <div class="admin-header">
+            <div class="header-left">
+                <h1>Управление заказами</h1>
+                <p>Всего заказов: {{ total_orders }}</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-outline" onclick="printOrders()">
+                    <i class="fas fa-print"></i> Печать
+                </button>
+                <button class="btn btn-outline" onclick="exportOrders()">
+                    <i class="fas fa-file-export"></i> Экспорт
+                </button>
+            </div>
+        </div>
+
+        <!-- Статус фильтров -->
+        <div class="status-filters">
+            {% for status_value, status_label in status_choices %}
+            <a href="?status={{ status_value }}"
+               class="status-filter {% if request.GET.status == status_value %}active{% elif not request.GET.status and status_value == 'pending' %}active{% endif %}">
+                <span class="status-dot status-{{ status_value }}"></span>
+                {{ status_label }}
+                {% if status_value == 'pending' %}
+                <span class="badge">{{ pending_count|default:"0" }}</span>
+                {% elif status_value == 'processing' %}
+                <span class="badge">{{ processing_count|default:"0" }}</span>
+                {% elif status_value == 'delivered' %}
+                <span class="badge">{{ delivered_count|default:"0" }}</span>
+                {% endif %}
+            </a>
+            {% endfor %}
+        </div>
+
+        <!-- Фильтры и поиск -->
+        <div class="filters-section">
+            <form method="get" class="filters-form">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <input type="text" name="q" placeholder="Поиск по номеру заказа, клиенту..."
+                               value="{{ request.GET.q|default:'' }}" class="search-input">
+                    </div>
+
+                    <div class="filter-group">
+                        <select name="status" class="filter-select">
+                            <option value="all">Все статусы</option>
+                            {% for status_value, status_label in status_choices %}
+                            <option value="{{ status_value }}"
+                                    {% if request.GET.status == status_value %}selected{% endif %}>
+                                {{ status_label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <input type="date" name="start_date"
+                               value="{{ request.GET.start_date|default:'' }}"
+                               class="date-input" placeholder="Дата от">
+                    </div>
+
+                    <div class="filter-group">
+                        <input type="date" name="end_date"
+                               value="{{ request.GET.end_date|default:'' }}"
+                               class="date-input" placeholder="Дата до">
+                    </div>
+
+                    <div class="filter-group">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Найти
+                        </button>
+                        <a href="{% url 'admin_orders' %}" class="btn btn-outline">
+                            Сбросить
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Таблица заказов -->
+        <div class="table-section">
+            <div class="table-responsive">
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th width="100">Номер заказа</th>
+                            <th>Клиент</th>
+                            <th width="120">Дата</th>
+                            <th width="120">Сумма</th>
+                            <th width="140">Статус</th>
+                            <th width="150">Оплата</th>
+                            <th width="180">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr class="order-row" data-order-id="{{ order.id }}">
+                            <td>
+                                <strong>#{{ order.order_number }}</strong>
+                                <div class="order-meta">
+                                    <small>{{ order.get_delivery_method_display|default:"Самовывоз" }}</small>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="customer-info">
+                                    <div class="customer-avatar">
+                                        {{ order.user.username|first|upper }}
+                                    </div>
+                                    <div class="customer-details">
+                                        <strong>{{ order.user.username }}</strong>
+                                        <div class="customer-contact">
+                                            {% if order.recipient_name %}
+                                            {{ order.recipient_name }} • {{ order.recipient_phone }}
+                                            {% else %}
+                                            {{ order.user.email|default:"Контакт не указан" }}
+                                            {% endif %}
+                                        </div>
+                                        <div class="customer-address">
+                                            {{ order.delivery_city|default:"" }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="order-date">
+                                    <div>{{ order.created_at|date:"d.m.Y" }}</div>
+                                    <small>{{ order.created_at|date:"H:i" }}</small>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="order-amount">
+                                    <strong>{{ order.total_amount }} ₽</strong>
+                                    <div class="amount-breakdown">
+                                        <small>Товары: {{ order.subtotal }} ₽</small>
+                                        {% if order.delivery_cost %}
+                                        <small>Доставка: {{ order.delivery_cost }} ₽</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="order-status-cell">
+                                    <span class="status-badge status-{{ order.status }}" id="status-badge-{{ order.id }}">
+                                        {{ order.get_status_display }}
+                                    </span>
+                                    {% if order.tracking_number %}
+                                    <div class="tracking-info">
+                                        <small><i class="fas fa-truck"></i> {{ order.tracking_number }}</small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="payment-info">
+                                    <span class="payment-status payment-{{ order.payment_status }}">
+                                        {{ order.get_payment_status_display }}
+                                    </span>
+                                    <div class="payment-method">
+                                        <small>{{ order.get_payment_method_display }}</small>
+                                    </div>
+                                    {% if order.paid_at %}
+                                    <div class="payment-date">
+                                        <small>{{ order.paid_at|date:"d.m.Y" }}</small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="order-actions">
+                                    <button class="btn-action btn-view"
+                                            onclick="viewOrderDetails({{ order.id }})"
+                                            title="Просмотр">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+
+                                    <div class="dropdown">
+                                        <button class="btn-action btn-more dropdown-toggle"
+                                                title="Изменить статус">
+                                            <i class="fas fa-cog"></i>
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            {% for status_value, status_label in status_choices %}
+                                            {% if status_value != order.status %}
+                                            <a href="javascript:void(0);" class="dropdown-item"
+                                               onclick="updateOrderStatus({{ order.id }}, '{{ status_value }}')">
+                                                <span class="status-dot status-{{ status_value }}"></span>
+                                                {{ status_label }}
+                                            </a>
+                                            {% endif %}
+                                            {% endfor %}
+                                            <div class="dropdown-divider"></div>
+                                            <a href="javascript:void(0);" class="dropdown-item text-danger"
+                                               onclick="cancelOrder({{ order.id }})">
+                                                <i class="fas fa-times"></i> Отменить заказ
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    <a href="{% url 'order_detail' order.id %}"
+                                       class="btn btn-small btn-outline">
+                                        Подробнее
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7">
+                                <div class="empty-state">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    <h3>Заказы не найдены</h3>
+                                    <p>Попробуйте изменить параметры поиска</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Пагинация -->
+            {% if orders.has_other_pages %}
+            <div class="pagination-wrapper">
+                <div class="pagination-info">
+                    Показано {{ orders.start_index }} - {{ orders.end_index }} из {{ orders.paginator.count }}
+                </div>
+                <div class="pagination">
+                    {% if orders.has_previous %}
+                    <a href="?page={{ orders.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+                       class="page-link">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                    {% endif %}
+
+                    {% for num in orders.paginator.page_range %}
+                        {% if orders.number == num %}
+                        <span class="page-current">{{ num }}</span>
+                        {% elif num > orders.number|add:'-3' and num < orders.number|add:'3' %}
+                        <a href="?page={{ num }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+                           class="page-link">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if orders.has_next %}
+                    <a href="?page={{ orders.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}"
+                       class="page-link">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно просмотра заказа -->
+<div id="orderModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 800px;">
+        <div class="modal-header">
+            <h3>Детали заказа <span id="modalOrderNumber"></span></h3>
+            <button class="modal-close" onclick="closeOrderModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="orderDetailsContainer">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i> Загрузка деталей заказа...
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeOrderModal()">Закрыть</button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Основные стили */
+.admin-container {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 30px;
+    min-height: 100vh;
+    background: #f8f9fa;
+    padding: 20px;
+}
+
+.admin-sidebar {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.admin-user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.admin-user-avatar {
+    width: 50px;
+    height: 50px;
+    background: #667eea;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.admin-user-details h4 {
+    margin: 0;
+    color: #333;
+    font-size: 16px;
+}
+
+.user-role {
+    margin: 5px 0 0;
+    color: #666;
+    font-size: 13px;
+}
+
+.admin-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.admin-menu li {
+    margin-bottom: 8px;
+}
+
+.admin-menu a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    color: #666;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s;
+    font-size: 14px;
+}
+
+.admin-menu a:hover {
+    background: #f8f9fa;
+    color: #333;
+}
+
+.admin-menu a.active {
+    background: #667eea;
+    color: white;
+}
+
+.admin-menu a i {
+    width: 20px;
+    text-align: center;
+}
+
+.admin-content {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.header-left h1 {
+    margin: 0;
+    color: #333;
+    font-size: 28px;
+}
+
+.header-left p {
+    margin: 8px 0 0;
+    color: #666;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: #667eea;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #5a6fd8;
+}
+
+.btn-outline {
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+}
+
+.btn-outline:hover {
+    background: #f8f9fa;
+}
+
+.btn-small {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+/* Статус фильтры */
+.status-filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+.status-filter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #666;
+    font-weight: 500;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+}
+
+.status-filter:hover {
+    background: #e9ecef;
+    color: #333;
+}
+
+.status-filter.active {
+    background: white;
+    border-color: #667eea;
+    color: #667eea;
+    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.1);
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-pending .status-dot { background: #ffc107; }
+.status-processing .status-dot { background: #17a2b8; }
+.status-shipped .status-dot { background: #007bff; }
+.status-delivered .status-dot { background: #28a745; }
+.status-cancelled .status-dot { background: #dc3545; }
+.status-refunded .status-dot { background: #6c757d; }
+
+.badge {
+    background: #dc3545;
+    color: white;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 5px;
+}
+
+/* Фильтры и поиск */
+.filters-section {
+    margin-bottom: 25px;
+}
+
+.filters-form {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.filter-row {
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 150px;
+}
+
+.search-input, .filter-select, .date-input {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    background: white;
+}
+
+.search-input:focus, .filter-select:focus, .date-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Таблица заказов */
+.table-section {
+    margin-top: 20px;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.orders-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.orders-table th {
+    background: #f8f9fa;
+    padding: 18px 15px;
+    text-align: left;
+    font-weight: 600;
+    color: #555;
+    border-bottom: 2px solid #eee;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.orders-table td {
+    padding: 15px;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+}
+
+.order-row:hover {
+    background: #fafafa;
+}
+
+.order-meta small {
+    color: #888;
+    font-size: 11px;
+    margin-top: 5px;
+    display: block;
+}
+
+.customer-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.customer-avatar {
+    width: 40px;
+    height: 40px;
+    background: #667eea;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.customer-details {
+    flex: 1;
+}
+
+.customer-details strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 14px;
+    color: #333;
+}
+
+.customer-contact {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 2px;
+}
+
+.customer-address {
+    font-size: 11px;
+    color: #888;
+}
+
+.order-date {
+    font-size: 14px;
+    color: #333;
+}
+
+.order-date small {
+    color: #888;
+    font-size: 12px;
+    display: block;
+}
+
+.order-amount strong {
+    color: #333;
+    font-size: 16px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.amount-breakdown small {
+    display: block;
+    color: #888;
+    font-size: 11px;
+}
+
+.order-status-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    min-width: 100px;
+}
+
+.status-pending { background: #fff3cd; color: #856404; }
+.status-processing { background: #d1ecf1; color: #0c5460; }
+.status-shipped { background: #cce5ff; color: #004085; }
+.status-delivered { background: #d4edda; color: #155724; }
+.status-cancelled { background: #f8d7da; color: #721c24; }
+.status-refunded { background: #e2e3e5; color: #383d41; }
+
+.tracking-info {
+    font-size: 11px;
+    color: #666;
+}
+
+.payment-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.payment-status {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.payment-pending { background: #fff3cd; color: #856404; }
+.payment-paid { background: #d4edda; color: #155724; }
+.payment-failed { background: #f8d7da; color: #721c24; }
+.payment-refunded { background: #e2e3e5; color: #383d41; }
+
+.payment-method small {
+    color: #666;
+    font-size: 11px;
+}
+
+.payment-date small {
+    color: #888;
+    font-size: 10px;
+}
+
+/* Действия с заказами */
+.order-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-action {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: #f8f9fa;
+    color: #666;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.btn-action:hover {
+    background: #e9ecef;
+    color: #333;
+}
+
+.btn-view:hover {
+    background: #17a2b8;
+    color: white;
+}
+
+.btn-more:hover {
+    background: #6c757d;
+    color: white;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    min-width: 180px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 8px 0;
+    z-index: 1000;
+    border: 1px solid #eee;
+}
+
+.dropdown:hover .dropdown-menu {
+    display: block;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 15px;
+    color: #333;
+    text-decoration: none;
+    font-size: 13px;
+    transition: background 0.2s;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background: #f8f9fa;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: #eee;
+    margin: 8px 0;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+}
+
+.text-danger:hover {
+    background: #f8d7da !important;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    color: #666;
+}
+
+.empty-state i {
+    font-size: 48px;
+    color: #ccc;
+    margin-bottom: 20px;
+}
+
+.empty-state h3 {
+    margin: 0 0 10px;
+    color: #555;
+}
+
+.empty-state p {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* Пагинация */
+.pagination-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.pagination-info {
+    color: #666;
+    font-size: 14px;
+}
+
+.pagination {
+    display: flex;
+    gap: 5px;
+}
+
+.page-link, .page-current {
+    padding: 8px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #333;
+    font-size: 14px;
+    min-width: 40px;
+    text-align: center;
+    display: inline-block;
+}
+
+.page-link {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+}
+
+.page-link:hover {
+    background: #e9ecef;
+    color: #667eea;
+}
+
+.page-current {
+    background: #667eea;
+    color: white;
+    border: 1px solid #667eea;
+}
+
+/* Модальное окно */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    padding: 20px 25px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 20px;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #666;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.modal-close:hover {
+    background: #f8f9fa;
+    color: #333;
+}
+
+.modal-body {
+    padding: 25px;
+}
+
+.modal-footer {
+    padding: 20px 25px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+.loading i {
+    margin-right: 10px;
+}
+
+.error {
+    text-align: center;
+    padding: 40px;
+    color: #dc3545;
+}
+
+/* Стили для уведомлений */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 300px;
+    max-width: 400px;
+    z-index: 9999;
+    animation: slideIn 0.3s ease-out;
+}
+
+.notification-success {
+    background: #d4edda;
+    color: #155724;
+    border-left: 4px solid #28a745;
+}
+
+.notification-error {
+    background: #f8d7da;
+    color: #721c24;
+    border-left: 4px solid #dc3545;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: 16px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    margin-left: 15px;
+}
+
+.notification-close:hover {
+    opacity: 1;
+}
+
+/* Детали заказа в модальном окне */
+.order-details {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.details-section {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 20px;
+}
+
+.details-section:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.details-section h4 {
+    margin: 0 0 15px;
+    color: #333;
+    font-size: 16px;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.detail-label {
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-value {
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+}
+
+.customer-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.customer-avatar-large {
+    width: 60px;
+    height: 60px;
+    background: #667eea;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.customer-info-large h5 {
+    margin: 0 0 5px;
+    color: #333;
+}
+
+.customer-info-large p {
+    margin: 0 0 3px;
+    color: #666;
+    font-size: 14px;
+}
+
+.order-items {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.order-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.item-image {
+    width: 60px;
+    height: 60px;
+    background: #e9ecef;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.no-image {
+    color: #adb5bd;
+    font-size: 20px;
+}
+
+.item-info {
+    flex: 1;
+}
+
+.item-info h6 {
+    margin: 0 0 5px;
+    color: #333;
+    font-size: 14px;
+}
+
+.item-info p {
+    margin: 0 0 3px;
+    color: #666;
+    font-size: 13px;
+}
+
+.item-total {
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+/* Адаптивность */
+@media (max-width: 1200px) {
+    .admin-container {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-sidebar {
+        margin-bottom: 30px;
+    }
+}
+
+@media (max-width: 992px) {
+    .orders-table {
+        min-width: 800px;
+    }
+
+    .status-filters {
+        overflow-x: auto;
+        padding-bottom: 10px;
+    }
+
+    .status-filter {
+        white-space: nowrap;
+    }
+
+    .filter-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-content {
+        padding: 20px;
+    }
+
+    .admin-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+
+    .header-actions {
+        justify-content: flex-start;
+    }
+
+    .order-actions {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .customer-info {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .customer-avatar {
+        margin-bottom: 8px;
+    }
+
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pagination-wrapper {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+
+    .pagination {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .admin-container {
+        padding: 10px;
+    }
+
+    .admin-sidebar,
+    .admin-content {
+        padding: 15px;
+    }
+
+    .modal-content {
+        margin: 10px;
+        max-height: 90vh;
+    }
+}
+</style>
+
+<script>
+// Функции для работы с заказами
+function viewOrderDetails(orderId) {
+    const modal = document.getElementById('orderModal');
+    const container = document.getElementById('orderDetailsContainer');
+    const orderNumber = document.getElementById('modalOrderNumber');
+
+    container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Загрузка деталей заказа...</div>';
+    modal.style.display = 'flex';
+
+    fetch(`/api/orders/${orderId}/details/`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка сети: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            orderNumber.textContent = `#${data.order_number}`;
+            container.innerHTML = renderOrderDetails(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            container.innerHTML = '<div class="error"><i class="fas fa-exclamation-triangle"></i> Ошибка загрузки данных заказа</div>';
+        });
+}
+
+function updateOrderStatus(orderId, newStatus) {
+    if (confirm('Вы уверены, что хотите изменить статус заказа?')) {
+        // Показываем индикатор загрузки
+        const statusBadge = document.getElementById(`status-badge-${orderId}`);
+        if (statusBadge) {
+            const originalStatus = statusBadge.textContent;
+            statusBadge.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            fetch(`/api/orders/${orderId}/update-status/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ status: newStatus })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Обновляем статус в таблице
+                    statusBadge.textContent = data.new_status_display;
+                    statusBadge.className = `status-badge status-${newStatus}`;
+
+                    // Показываем уведомление
+                    showNotification('Статус заказа успешно обновлен!', 'success');
+
+                    // Обновляем счетчики статусов через 1 секунду
+                    setTimeout(() => {
+                        updateStatusCounters();
+                    }, 1000);
+                } else {
+                    showNotification('Ошибка: ' + data.error, 'error');
+                    statusBadge.textContent = originalStatus;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Ошибка соединения с сервером', 'error');
+                statusBadge.textContent = originalStatus;
+            });
+        }
+    }
+}
+
+function cancelOrder(orderId) {
+    if (confirm('Вы уверены, что хотите отменить этот заказ?')) {
+        updateOrderStatus(orderId, 'cancelled');
+    }
+}
+
+function closeOrderModal() {
+    document.getElementById('orderModal').style.display = 'none';
+}
+
+// Функция для показа уведомлений
+function showNotification(message, type) {
+    // Удаляем предыдущие уведомления
+    document.querySelectorAll('.notification').forEach(n => n.remove());
+
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+            <span>${message}</span>
+        </div>
+        <button class="notification-close" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+
+    document.body.appendChild(notification);
+
+    // Автоматическое скрытие через 5 секунд
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+// Обновление счетчиков статусов (перезагрузка страницы)
+function updateStatusCounters() {
+    location.reload();
+}
+
+// Вспомогательная функция для отображения деталей заказа
+function renderOrderDetails(data) {
+    // Форматирование даты
+    const formatDate = (dateStr) => {
+        if (!dateStr) return '';
+        return dateStr.replace(' ', ' в ');
+    };
+
+    // Подготовка списка товаров
+    const itemsHtml = data.items.map(item => `
+        <div class="order-item">
+            <div class="item-image">
+                ${item.image ? `<img src="${item.image}" alt="${item.name}">` : '<div class="no-image"><i class="fas fa-image"></i></div>'}
+            </div>
+            <div class="item-info">
+                <h6>${item.name}</h6>
+                <p>Количество: ${item.quantity} × ${item.price.toFixed(2)} ₽</p>
+                <p class="item-total">${item.total.toFixed(2)} ₽</p>
+            </div>
+        </div>
+    `).join('');
+
+    return `
+        <div class="order-details">
+            <div class="details-section">
+                <h4>Информация о заказе</h4>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Номер заказа:</span>
+                        <span class="detail-value">#${data.order_number}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Дата создания:</span>
+                        <span class="detail-value">${formatDate(data.created_at)}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Статус:</span>
+                        <span class="detail-value status-badge status-${data.status}">${data.status_display}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Сумма:</span>
+                        <span class="detail-value">${data.total_amount.toFixed(2)} ₽</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="details-section">
+                <h4>Информация о клиенте</h4>
+                <div class="customer-card">
+                    <div class="customer-avatar-large">
+                        ${data.user.username[0].toUpperCase()}
+                    </div>
+                    <div class="customer-info-large">
+                        <h5>${data.user.username}</h5>
+                        <p>${data.user.email || 'Email не указан'}</p>
+                        ${data.recipient_name || data.recipient_phone ? `<p>${data.recipient_name || ''} ${data.recipient_phone || ''}</p>` : ''}
+                    </div>
+                </div>
+            </div>
+
+            <div class="details-section">
+                <h4>Товары в заказе (${data.items.length})</h4>
+                <div class="order-items">
+                    ${itemsHtml || '<p class="text-muted">Товары не найдены</p>'}
+                </div>
+            </div>
+
+            <div class="details-section">
+                <h4>Доставка и оплата</h4>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Способ доставки:</span>
+                        <span class="detail-value">${data.delivery_method_display}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Адрес:</span>
+                        <span class="detail-value">${(data.delivery_city ? data.delivery_city + ', ' : '') + (data.delivery_address || 'Не указан')}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Способ оплаты:</span>
+                        <span class="detail-value">${data.payment_method_display}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Статус оплаты:</span>
+                        <span class="detail-value payment-status payment-${data.payment_status}">${data.payment_status_display}</span>
+                    </div>
+                </div>
+            </div>
+
+            ${data.notes ? `
+            <div class="details-section">
+                <h4>Комментарий к заказу</h4>
+                <div class="notes-box">
+                    <p>${data.notes}</p>
+                </div>
+            </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+// Вспомогательная функция для получения CSRF токена
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Закрытие модального окна при клике вне его
+window.onclick = function(event) {
+    const modal = document.getElementById('orderModal');
+    if (event.target == modal) {
+        closeOrderModal();
+    }
+}
+
+// Функции для кнопок в заголовке
+function printOrders() {
+    showNotification('Функция печати в разработке', 'error');
+}
+
+function exportOrders() {
+    showNotification('Функция экспорта в разработке', 'error');
+}
+
+// Инициализация выпадающих меню
+document.addEventListener('DOMContentLoaded', function() {
+    // Добавляем обработчики для всех выпадающих меню
+    document.querySelectorAll('.dropdown').forEach(dropdown => {
+        dropdown.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const menu = this.querySelector('.dropdown-menu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        });
+    });
+
+    // Закрытие выпадающих меню при клике вне их
+    document.addEventListener('click', function() {
+        document.querySelectorAll('.dropdown-menu').forEach(menu => {
+            menu.style.display = 'none';
+        });
+    });
+
+    // Добавляем CSS для анимации уведомлений, если еще нет
+    if (!document.querySelector('#notification-styles')) {
+        const style = document.createElement('style');
+        style.id = 'notification-styles';
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+
+            .notification {
+                animation: slideIn 0.3s ease-out;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+});
+</script>
+{% endblock %}

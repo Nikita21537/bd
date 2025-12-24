@@ -1,0 +1,763 @@
+<!-- sportshop/templates/sportshop/admin/dashboard.html -->
+{% extends 'sportshop/base.html' %}
+
+{% block content %}
+<div class="admin-container">
+    <!-- Боковая панель админа -->
+    <div class="admin-sidebar">
+        <div class="admin-user-info">
+            <div class="admin-user-avatar">
+                {{ user.username|first|upper }}
+            </div>
+            <div class="admin-user-details">
+                <h4>{{ user.username }}</h4>
+                <p class="user-role">
+                    {% if user.is_superuser %}
+                    Суперадминистратор
+                    {% elif 'administrator' in user_groups %}
+                    Администратор
+                    {% elif 'manager' in user_groups %}
+                    Менеджер
+                    {% else %}
+                    Пользователь
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <ul class="admin-menu">
+            <li><a href="{% url 'admin_dashboard' %}"
+                   class="{% if section == 'dashboard' %}active{% endif %}">
+                <i class="fas fa-tachometer-alt"></i> Дашборд
+            </a></li>
+            <li><a href="{% url 'admin_products' %}"
+                   class="{% if section == 'products' %}active{% endif %}">
+                <i class="fas fa-box"></i> Товары
+            </a></li>
+            <li><a href="{% url 'admin_orders' %}"
+                   class="{% if section == 'orders' %}active{% endif %}">
+                <i class="fas fa-shopping-cart"></i> Заказы
+            </a></li>
+            <li><a href="{% url 'admin_order_history' %}"
+                   class="{% if section == 'order_history' %}active{% endif %}">
+                <i class="fas fa-history"></i> История заказов
+            </a></li>
+            <li><a href="{% url 'admin_users' %}"
+                   class="{% if section == 'users' %}active{% endif %}">
+                <i class="fas fa-users"></i> Пользователи
+            </a></li>
+            <li><a href="{% url 'customer_account' %}">
+                <i class="fas fa-user"></i> Личный кабинет
+            </a></li>
+            <li><a href="{% url 'home' %}">
+                <i class="fas fa-home"></i> На сайт
+            </a></li>
+        </ul>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="admin-content">
+        <div class="admin-header">
+            <h1>Панель управления</h1>
+            <p>Добро пожаловать в панель администратора</p>
+        </div>
+
+        <!-- Статистика -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ stats.total_orders }}</h3>
+                    <p>Всего заказов</p>
+                    <small>+{{ stats.today_orders }} сегодня</small>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ stats.revenue|floatformat:0 }} ₽</h3>
+                    <p>Общая выручка</p>
+                    <small>{{ stats.weekly_revenue|floatformat:0 }} ₽ за неделю</small>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-boxes"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ stats.total_products }}</h3>
+                    <p>Товаров в каталоге</p>
+                    <small>{{ stats.pending_orders }} ожидают</small>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ stats.total_users }}</h3>
+                    <p>Зарегистрировано</p>
+                    <small>5 новых за неделю</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Последние заказы -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3><i class="fas fa-clock"></i> Последние заказы</h3>
+                <a href="{% url 'admin_orders' %}" class="view-all">Все заказы →</a>
+            </div>
+
+            {% if recent_orders %}
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Номер</th>
+                            <th>Клиент</th>
+                            <th>Дата</th>
+                            <th>Сумма</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in recent_orders %}
+                        <tr>
+                            <td><strong>#{{ order.order_number }}</strong></td>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar-small">
+                                        {{ order.user.username|first|upper }}
+                                    </div>
+                                    <div>
+                                        <div>{{ order.user.username }}</div>
+                                        <small>{{ order.user.email|default:"-" }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ order.created_at|date:"d.m.Y H:i" }}</td>
+                            <td>{{ order.total_amount }} ₽</td>
+                            <td>
+                                <span class="status-badge status-{{ order.status }}">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'order_detail' order.id %}"
+                                   class="btn-action" title="Просмотр">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-shopping-cart"></i>
+                <p>Пока нет заказов</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Популярные товары -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3><i class="fas fa-fire"></i> Популярные товары</h3>
+                <a href="{% url 'admin_products' %}" class="view-all">Все товары →</a>
+            </div>
+
+            {% if popular_products %}
+            <div class="products-grid-mini">
+                {% for product in popular_products %}
+                <div class="product-card-mini">
+                    <div class="product-image-mini">
+                        {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                        {% else %}
+                        <div class="no-image">
+                            <i class="fas fa-image"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="product-info-mini">
+                        <h4>{{ product.name|truncatechars:30 }}</h4>
+                        <div class="product-price-mini">
+                            {{ product.price }} ₽
+                        </div>
+                        <div class="product-meta">
+                            <span class="views">
+                                <i class="fas fa-eye"></i> {{ product.views }}
+                            </span>
+                            <span class="rating">
+                                <i class="fas fa-star"></i> {{ product.rating|default:"0.0" }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-box-open"></i>
+                <p>Товары пока не добавлены</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Новые пользователи -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3><i class="fas fa-user-plus"></i> Новые пользователи</h3>
+                <a href="{% url 'admin_users' %}" class="view-all">Все пользователи →</a>
+            </div>
+
+            {% if new_users %}
+            <div class="users-list">
+                {% for user_item in new_users %}
+                <div class="user-item">
+                    <div class="user-avatar-mini">
+                        {{ user_item.username|first|upper }}
+                    </div>
+                    <div class="user-details-mini">
+                        <h5>{{ user_item.username }}</h5>
+                        <p>{{ user_item.email|default:"Email не указан" }}</p>
+                        <small>Зарегистрирован: {{ user_item.date_joined|date:"d.m.Y" }}</small>
+                    </div>
+                    <div class="user-actions">
+                        <a href="#" class="btn-action" title="Профиль">
+                            <i class="fas fa-user"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-users"></i>
+                <p>Пока нет пользователей</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.admin-container {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 30px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Сайдбар */
+.admin-sidebar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    padding: 25px 20px;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+    height: fit-content;
+    position: sticky;
+    top: 20px;
+}
+
+.admin-user-info {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.admin-user-avatar {
+    width: 60px;
+    height: 60px;
+    background: white;
+    color: #667eea;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    margin: 0 auto 15px;
+}
+
+.admin-user-details {
+    text-align: center;
+    color: white;
+}
+
+.admin-user-details h4 {
+    margin: 0 0 5px 0;
+    font-size: 18px;
+}
+
+.user-role {
+    margin: 0;
+    font-size: 12px;
+    opacity: 0.8;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: inline-block;
+}
+
+.admin-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.admin-menu li {
+    margin-bottom: 8px;
+}
+
+.admin-menu a {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 20px;
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    border-radius: 10px;
+    transition: all 0.3s;
+    font-weight: 500;
+}
+
+.admin-menu a:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    transform: translateX(5px);
+}
+
+.admin-menu a.active {
+    background: white;
+    color: #667eea;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.admin-menu a i {
+    width: 20px;
+    text-align: center;
+    font-size: 18px;
+}
+
+/* Основной контент */
+.admin-content {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+}
+
+.admin-header {
+    margin-bottom: 40px;
+}
+
+.admin-header h1 {
+    margin: 0 0 10px 0;
+    font-size: 32px;
+    color: #333;
+}
+
+.admin-header p {
+    color: #666;
+    margin: 0;
+    font-size: 16px;
+}
+
+/* Статистика */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f0f0f0;
+    transition: all 0.3s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.stat-icon {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+}
+
+.stat-info h3 {
+    margin: 0 0 8px 0;
+    font-size: 28px;
+    font-weight: bold;
+    color: #333;
+}
+
+.stat-info p {
+    margin: 0 0 5px 0;
+    color: #666;
+    font-weight: 500;
+}
+
+.stat-info small {
+    color: #888;
+    font-size: 12px;
+}
+
+/* Секции */
+.section-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f0f0f0;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f5f5f5;
+}
+
+.section-header h3 {
+    margin: 0;
+    font-size: 20px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.view-all {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.view-all:hover {
+    color: #5a67d8;
+    text-decoration: underline;
+}
+
+/* Таблицы */
+.table-responsive {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th {
+    background: #f8f9fa;
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    color: #555;
+    border-bottom: 2px solid #eee;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.data-table td {
+    padding: 15px;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+}
+
+.user-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-avatar-small {
+    width: 40px;
+    height: 40px;
+    background: #667eea;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: #f8f9fa;
+    color: #667eea;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.btn-action:hover {
+    background: #667eea;
+    color: white;
+    transform: scale(1.1);
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.status-pending { background: #fff3cd; color: #856404; }
+.status-processing { background: #cce5ff; color: #004085; }
+.status-shipped { background: #d1ecf1; color: #0c5460; }
+.status-delivered { background: #d4edda; color: #155724; }
+.status-cancelled { background: #f8d7da; color: #721c24; }
+
+/* Продукты мини */
+.products-grid-mini {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.product-card-mini {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+    transition: all 0.3s;
+    border: 1px solid #eee;
+}
+
+.product-card-mini:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.product-image-mini {
+    height: 120px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 15px;
+    background: white;
+}
+
+.product-image-mini img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.no-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ccc;
+    font-size: 32px;
+}
+
+.product-info-mini h4 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    color: #333;
+    line-height: 1.4;
+}
+
+.product-price-mini {
+    color: #667eea;
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.product-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #888;
+}
+
+.product-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Пользователи мини */
+.users-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.user-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    transition: all 0.3s;
+}
+
+.user-item:hover {
+    background: #f0f0f0;
+    transform: translateX(5px);
+}
+
+.user-avatar-mini {
+    width: 50px;
+    height: 50px;
+    background: #667eea;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.user-details-mini {
+    flex: 1;
+}
+
+.user-details-mini h5 {
+    margin: 0 0 5px 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.user-details-mini p {
+    margin: 0 0 5px 0;
+    color: #666;
+    font-size: 13px;
+}
+
+.user-details-mini small {
+    color: #888;
+    font-size: 11px;
+}
+
+/* Пустые состояния */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    margin: 0;
+    font-size: 16px;
+}
+
+/* Адаптивность */
+@media (max-width: 1200px) {
+    .admin-container {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-sidebar {
+        position: static;
+        margin-bottom: 30px;
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .products-grid-mini {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+
+    .admin-content {
+        padding: 20px;
+    }
+
+    .section-card {
+        padding: 20px;
+    }
+}
+</style>
+
+<script>
+// Обновление статистики в реальном времени
+document.addEventListener('DOMContentLoaded', function() {
+    // Можно добавить автообновление статистики
+    // setInterval(updateStats, 60000); // Каждую минуту
+
+    function updateStats() {
+        fetch('/api/stats/')
+            .then(response => response.json())
+            .then(data => {
+                // Обновление данных на странице
+                console.log('Статистика обновлена:', data);
+            });
+    }
+
+    // Инициализация tooltips
+    const tooltips = document.querySelectorAll('[title]');
+    tooltips.forEach(el => {
+        el.addEventListener('mouseenter', function(e) {
+            // Простая реализация tooltip
+        });
+    });
+});
+</script>
+{% endblock %}

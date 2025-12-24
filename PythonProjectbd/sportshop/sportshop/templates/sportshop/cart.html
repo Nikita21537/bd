@@ -1,0 +1,732 @@
+{% extends 'sportshop/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="cart-container">
+    <h1>Корзина покупок</h1>
+    
+    {% if cart_items %}
+    <div class="cart-content">
+        <!-- Список товаров -->
+        <div class="cart-items">
+            <div class="cart-header">
+                <div class="header-item">Товар</div>
+                <div class="header-item">Цена</div>
+                <div class="header-item">Количество</div>
+                <div class="header-item">Итого</div>
+                <div class="header-item">Действия</div>
+            </div>
+            
+            {% for item in cart_items %}
+            <div class="cart-item" data-product-id="{{ item.product.id }}">
+                <div class="item-product">
+                    <div class="product-image">
+                        {% if item.product.image %}
+                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                        {% else %}
+                            <div class="no-image-placeholder">
+                                <i class="fas fa-image"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="product-info">
+                        <a href="{% url 'product_detail' item.product.id %}" class="product-name">
+                            {{ item.product.name|truncatechars:50 }}
+                        </a>
+                        <div class="product-sku">
+                            Артикул: {{ item.product.sku|default:"Не указан" }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="item-price">
+                    {% if item.product.discount_price %}
+                        <span class="price-discounted">{{ item.product.discount_price }} ₽</span>
+                    {% else %}
+                        <span class="price-regular">{{ item.product.price|default:"0" }} ₽</span>
+                    {% endif %}
+                </div>
+                
+                <div class="item-quantity">
+                    <div class="quantity-controls">
+                        <button class="quantity-btn minus" data-action="decrease">−</button>
+                        <input type="number" class="quantity-input" 
+                               value="{{ item.quantity }}" min="1" 
+                               max="{{ item.product.stock_quantity|default:99 }}">
+                        <button class="quantity-btn plus" data-action="increase">+</button>
+                    </div>
+                </div>
+                
+                <div class="item-total">
+                    <span class="total-price">{{ item.get_total_price|default:"0" }} ₽</span>
+                </div>
+                
+                <div class="item-actions">
+                    <button class="remove-btn" data-product-id="{{ item.product.id }}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Итоговая информация -->
+        <div class="cart-summary">
+            <h3>Сумма заказа</h3>
+            
+            <div class="summary-row">
+                <span>Товары ({{ cart_total_quantity|default:"0" }})</span>
+                <span id="subtotal">{{ cart_subtotal|default:"0" }} ₽</span>
+            </div>
+            
+            <div class="summary-row">
+                <span>Доставка</span>
+                <span id="delivery-cost">{{ delivery_cost|default:"0" }} ₽</span>
+            </div>
+            
+            <div class="summary-row">
+                <span>Скидка</span>
+                <span id="discount">{{ cart_discount|default:"0" }} ₽</span>
+            </div>
+            
+            <div class="summary-row summary-total">
+                <span>Общая сумма</span>
+                <span id="grand-total">{{ cart_grand_total|default:"0" }} ₽</span>
+            </div>
+            
+            <button class="checkout-btn" onclick="window.location.href='{% url 'checkout' %}'">
+                Перейти к оформлению
+            </button>
+            
+            <a href="{% url 'catalog' %}" class="continue-shopping">
+                ← Продолжить покупки
+            </a>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-cart">
+        <div class="empty-cart-icon">🛒</div>
+        <h2>Ваша корзина пуста</h2>
+        <p>Добавьте товары из каталога, чтобы сделать заказ</p>
+        <a href="{% url 'catalog' %}" class="btn-browse-catalog">
+            <i class="fas fa-shopping-bag"></i> Перейти в каталог
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Обработка изменения количества
+    document.querySelectorAll('.quantity-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const cartItem = this.closest('.cart-item');
+            const productId = cartItem.dataset.productId;
+            const input = cartItem.querySelector('.quantity-input');
+            const action = this.dataset.action;
+            
+            let quantity = parseInt(input.value);
+            
+            if (action === 'increase') {
+                quantity++;
+            } else if (action === 'decrease') {
+                if (quantity > 1) {
+                    quantity--;
+                } else {
+                    // Если количество становится 0, удаляем товар
+                    removeFromCart(productId, cartItem);
+                    return;
+                }
+            }
+            
+            input.value = quantity;
+            updateCartItem(productId, quantity, cartItem);
+        });
+    });
+    
+    // Ручное изменение количества через input
+    document.querySelectorAll('.quantity-input').forEach(input => {
+        input.addEventListener('change', function() {
+            const cartItem = this.closest('.cart-item');
+            const productId = cartItem.dataset.productId;
+            let quantity = parseInt(this.value);
+            
+            if (quantity < 1) {
+                quantity = 1;
+                this.value = 1;
+            }
+            
+            updateCartItem(productId, quantity, cartItem);
+        });
+    });
+    
+    // Удаление товара из корзины
+    document.querySelectorAll('.remove-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const productId = this.dataset.productId;
+            const cartItem = this.closest('.cart-item');
+            
+            if (confirm('Удалить товар из корзины?')) {
+                removeFromCart(productId, cartItem);
+            }
+        });
+    });
+    
+    // Функция обновления количества товара в корзине
+    function updateCartItem(productId, quantity, cartItem) {
+        const url = `/update-cart/${productId}/`;
+        
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ quantity: quantity })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Обновляем общую стоимость позиции
+                const totalPriceElement = cartItem.querySelector('.total-price');
+                if (totalPriceElement) {
+                    totalPriceElement.textContent = data.item_total + ' ₽';
+                }
+                
+                // Обновляем общие суммы
+                updateCartSummary(data);
+                
+                // Обновляем счетчик корзины
+                updateCartCount(data.cart_count);
+                
+                // Если количество стало 0, удаляем строку
+                if (quantity <= 0) {
+                    cartItem.remove();
+                    checkEmptyCart();
+                }
+            } else {
+                alert(data.error || 'Ошибка при обновлении корзины');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка соединения');
+        });
+    }
+    
+    // Функция удаления товара из корзины
+    function removeFromCart(productId, cartItem) {
+        const url = `/remove-from-cart/${productId}/`;
+        
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Удаляем строку из таблицы
+                cartItem.remove();
+                
+                // Обновляем общие суммы
+                updateCartSummary(data);
+                
+                // Обновляем счетчик корзины
+                updateCartCount(data.cart_count);
+                
+                // Проверяем, не пуста ли корзина
+                checkEmptyCart();
+                
+                // Показываем уведомление
+                showNotification('Товар удален из корзины', 'success');
+            } else {
+                alert(data.error || 'Ошибка при удалении товара');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка соединения');
+        });
+    }
+    
+    // Функция обновления итоговой суммы
+    function updateCartSummary(data) {
+        const subtotalElement = document.getElementById('subtotal');
+        const grandTotalElement = document.getElementById('grand-total');
+        
+        if (subtotalElement && data.cart_subtotal !== undefined) {
+            subtotalElement.textContent = data.cart_subtotal + ' ₽';
+        }
+        
+        if (grandTotalElement && data.cart_subtotal !== undefined) {
+            // Пересчитываем итоговую сумму с учетом доставки
+            const deliveryCost = parseFloat(document.getElementById('delivery-cost').textContent) || 0;
+            const discount = parseFloat(document.getElementById('discount').textContent) || 0;
+            const newTotal = data.cart_subtotal + deliveryCost - discount;
+            grandTotalElement.textContent = newTotal.toFixed(2) + ' ₽';
+        }
+    }
+    
+    // Функция проверки пустой корзины
+    function checkEmptyCart() {
+        const cartItems = document.querySelectorAll('.cart-item');
+        if (cartItems.length === 0) {
+            // Перезагружаем страницу, чтобы показать сообщение о пустой корзине
+            location.reload();
+        }
+    }
+    
+    // Функция для получения CSRF токена
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Функция обновления счетчика корзины
+    function updateCartCount(count) {
+        const cartCountElements = document.querySelectorAll('.cart-count');
+        cartCountElements.forEach(el => {
+            el.textContent = count;
+            if (count > 0) {
+                el.style.display = 'inline';
+            } else {
+                el.style.display = 'none';
+            }
+        });
+    }
+    
+    // Функция показа уведомлений
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                <span>${message}</span>
+            </div>
+            <button class="notification-close">&times;</button>
+        `;
+        
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#28a745' : '#dc3545'};
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 10000;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s ease-out;
+        `;
+        
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+        
+        notification.querySelector('.notification-close').addEventListener('click', () => {
+            notification.remove();
+        });
+    }
+});
+</script>
+
+<style>
+.cart-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 20px;
+    min-height: 70vh;
+}
+
+.cart-container h1 {
+    font-size: 32px;
+    margin-bottom: 30px;
+    color: #333;
+    font-weight: 600;
+}
+
+.cart-content {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 40px;
+}
+
+@media (max-width: 992px) {
+    .cart-content {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Стили для списка товаров */
+.cart-items {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.cart-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 0.5fr;
+    padding: 20px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    font-weight: 600;
+    color: #333;
+}
+
+.header-item {
+    padding: 0 10px;
+}
+
+.cart-item {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 0.5fr;
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    align-items: center;
+}
+
+.cart-item:hover {
+    background: #fafafa;
+}
+
+.item-product {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.product-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f8f9fa;
+    flex-shrink: 0;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.no-image-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    font-size: 24px;
+}
+
+.product-info {
+    flex: 1;
+}
+
+.product-name {
+    font-weight: 500;
+    color: #333;
+    text-decoration: none;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.product-name:hover {
+    color: #667eea;
+}
+
+.product-sku {
+    font-size: 12px;
+    color: #666;
+}
+
+.item-price, .item-total {
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+}
+
+.price-discounted {
+    color: #dc3545;
+}
+
+.price-regular {
+    color: #333;
+}
+
+.item-quantity {
+    display: flex;
+    justify-content: center;
+}
+
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    overflow: hidden;
+    width: fit-content;
+}
+
+.quantity-btn {
+    width: 35px;
+    height: 35px;
+    background: white;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+}
+
+.quantity-btn:hover {
+    background: #f8f9fa;
+}
+
+.quantity-input {
+    width: 50px;
+    height: 35px;
+    border: none;
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    text-align: center;
+    font-size: 16px;
+    outline: none;
+}
+
+.quantity-input::-webkit-inner-spin-button,
+.quantity-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.item-actions {
+    display: flex;
+    justify-content: center;
+}
+
+.remove-btn {
+    width: 35px;
+    height: 35px;
+    border: none;
+    background: #f8f9fa;
+    border-radius: 6px;
+    color: #dc3545;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.remove-btn:hover {
+    background: #dc3545;
+    color: white;
+}
+
+/* Стили для итоговой информации */
+.cart-summary {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    height: fit-content;
+    position: sticky;
+    top: 20px;
+}
+
+.cart-summary h3 {
+    margin: 0 0 20px 0;
+    font-size: 20px;
+    color: #333;
+    font-weight: 600;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    color: #666;
+    font-size: 16px;
+}
+
+.summary-total {
+    border-bottom: none;
+    padding-bottom: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin-top: 10px;
+    padding-top: 15px;
+    border-top: 2px solid #dee2e6;
+}
+
+.checkout-btn {
+    width: 100%;
+    padding: 15px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: background 0.2s;
+}
+
+.checkout-btn:hover {
+    background: #218838;
+}
+
+.continue-shopping {
+    display: block;
+    text-align: center;
+    margin-top: 15px;
+    color: #667eea;
+    text-decoration: none;
+    font-size: 14px;
+    padding: 10px;
+}
+
+.continue-shopping:hover {
+    text-decoration: underline;
+}
+
+/* Стили для пустой корзины */
+.empty-cart {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    margin-top: 30px;
+}
+
+.empty-cart-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.empty-cart h2 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 28px;
+}
+
+.empty-cart p {
+    color: #666;
+    font-size: 16px;
+    margin-bottom: 30px;
+}
+
+.btn-browse-catalog {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 30px;
+    background: #667eea;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 16px;
+    transition: background 0.2s;
+}
+
+.btn-browse-catalog:hover {
+    background: #5a67d8;
+    color: white;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .cart-container {
+        padding: 20px 15px;
+    }
+    
+    .cart-container h1 {
+        font-size: 24px;
+    }
+    
+    .cart-header {
+        grid-template-columns: 1fr;
+        display: none;
+    }
+    
+    .cart-item {
+        grid-template-columns: 1fr;
+        gap: 15px;
+        padding: 15px;
+        position: relative;
+    }
+    
+    .item-product {
+        margin-bottom: 10px;
+    }
+    
+    .item-price, .item-quantity, .item-total, .item-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .item-price::before {
+        content: 'Цена: ';
+        color: #666;
+    }
+    
+    .item-total::before {
+        content: 'Итого: ';
+        color: #666;
+    }
+    
+    .item-actions {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends 'sportshop/base.html' %}
+{% load static %}
+
+{% block title %}Регистрация - Спорт-магазин{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-container {
+        max-width: 400px;
+        margin: 60px auto;
+        padding: 40px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    
+    .auth-title {
+        text-align: center;
+        margin-bottom: 30px;
+        color: var(--gray-800);
+    }
+    
+    .form-errors {
+        background: #fee;
+        color: var(--danger);
+        padding: 10px 15px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+        border-left: 4px solid var(--danger);
+    }
+    
+    .form-errors ul {
+        margin: 0;
+        padding-left: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h2 class="auth-title">Регистрация</h2>
+    
+    {% if form.errors %}
+    <div class="form-errors">
+        <ul>
+            {% for field in form %}
+                {% for error in field.errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    
+    <form method="POST" action="{% url 'register' %}" class="auth-form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="id_username">Имя пользователя</label>
+            <input type="text" name="username" id="id_username" required autofocus>
+        </div>
+        
+        <div class="form-group">
+            <label for="id_email">Email</label>
+            <input type="email" name="email" id="id_email" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="id_password1">Пароль</label>
+            <input type="password" name="password1" id="id_password1" required>
+            <small style="color: #666; font-size: 0.9em;">
+                Минимум 8 символов, не только цифры.
+            </small>
+        </div>
+        
+        <div class="form-group">
+            <label for="id_password2">Подтверждение пароля</label>
+            <input type="password" name="password2" id="id_password2" required>
+        </div>
+        
+        <div class="form-group" style="display: flex; align-items: center;">
+            <input type="checkbox" name="terms" id="id_terms" required style="width: auto; margin-right: 10px;">
+            <label for="id_terms" style="margin: 0; font-size: 0.9em;">
+                Я согласен с <a href="/terms/" style="color: var(--primary);">условиями использования</a> 
+                и <a href="/privacy/" style="color: var(--primary);">политикой конфиденциальности</a>
+            </label>
+        </div>
+        
+        <button type="submit" class="auth-btn">Зарегистрироваться</button>
+    </form>
+    
+    <div class="auth-links">
+        <p>Уже есть аккаунт? <a href="{% url 'login' %}">Войти</a></p>
+    </div>
+</div>
+{% endblock %}

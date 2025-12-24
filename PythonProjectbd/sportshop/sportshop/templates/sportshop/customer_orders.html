@@ -1,0 +1,638 @@
+<!-- sportshop/templates/sportshop/account/customer_orders.html -->
+{% extends 'sportshop/base.html' %}
+
+{% block content %}
+<div class="account-container">
+    <!-- Боковая панель -->
+    <div class="account-sidebar">
+        <div class="user-info">
+            <div class="user-avatar">
+                {{ user.username|first|upper }}
+            </div>
+            <div class="user-details">
+                <h3>{{ user.username }}</h3>
+                <p class="user-email">{{ user.email|default:"Email не указан" }}</p>
+                <div class="user-bonus">
+                    <i class="fas fa-star"></i>
+                    <span>{{ user.profile.bonus_points }} бонусов</span>
+                </div>
+            </div>
+        </div>
+
+        <nav class="account-menu">
+            <a href="{% url 'customer_account' %}" class="menu-item">
+                <i class="fas fa-home"></i> Обзор
+            </a>
+            <a href="{% url 'account_profile' %}" class="menu-item">
+                <i class="fas fa-user"></i> Личные данные
+            </a>
+            <a href="{% url 'account_orders' %}" class="menu-item active">
+                <i class="fas fa-shopping-bag"></i> Мои заказы
+            </a>
+            <a href="{% url 'account_addresses' %}" class="menu-item">
+                <i class="fas fa-map-marker-alt"></i> Адреса доставки
+            </a>
+            <a href="{% url 'account_reviews' %}" class="menu-item">
+                <i class="fas fa-star"></i> Мои отзывы
+            </a>
+            <a href="{% url 'cart' %}" class="menu-item">
+                <i class="fas fa-shopping-cart"></i> Корзина
+                {% if cart_count > 0 %}
+                <span class="cart-count">{{ cart_count }}</span>
+                {% endif %}
+            </a>
+            <a href="{% url 'logout' %}" class="menu-item logout">
+                <i class="fas fa-sign-out-alt"></i> Выйти
+            </a>
+        </nav>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="account-content">
+        <div class="orders-header">
+            <h1>Мои заказы</h1>
+            <p>Всего заказов: {{ total_orders }}</p>
+        </div>
+
+        {% if orders %}
+        <div class="orders-list">
+            {% for order in orders %}
+            <div class="order-card">
+                <div class="order-header">
+                    <div class="order-info">
+                        <div class="order-number">
+                            <strong>Заказ #{{ order.order_number }}</strong>
+                            <span class="order-date">{{ order.created_at|date:"d.m.Y H:i" }}</span>
+                        </div>
+                        <div class="order-status">
+                            <span class="status-badge status-{{ order.status }}">
+                                {{ order.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="order-summary">
+                        <div class="order-items-count">
+                            <i class="fas fa-box"></i> {{ order.items.count }} товар(ов)
+                        </div>
+                        <div class="order-total">
+                            <strong>{{ order.total_amount }} ₽</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="order-items">
+                    {% for item in order.items.all %}
+                    <div class="order-item">
+                        <div class="item-image">
+                            {% if item.product.image %}
+                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                            {% else %}
+                            <div class="no-image">
+                                <i class="fas fa-image"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="item-details">
+                            <h4>{{ item.product.name }}</h4>
+                            <div class="item-info">
+                                <span class="item-quantity">{{ item.quantity }} × {{ item.price }} ₽</span>
+                                <span class="item-total">{{ item.get_total_price }} ₽</span>
+                            </div>
+                        </div>
+                        <div class="item-actions">
+                            <a href="{% url 'product_detail' item.product.id %}" class="btn-view-product">
+                                <i class="fas fa-eye"></i> Товар
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="order-footer">
+                    <div class="order-actions">
+                        <a href="{% url 'order_detail' order.id %}" class="btn-order-details">
+                            <i class="fas fa-info-circle"></i> Подробнее о заказе
+                        </a>
+
+                        {% if order.status == 'pending' %}
+                        <button class="btn-cancel-order" onclick="cancelOrder({{ order.id }})">
+                            <i class="fas fa-times"></i> Отменить заказ
+                        </button>
+                        {% endif %}
+
+                        {% if order.status == 'delivered' %}
+                        <button class="btn-repeat-order" onclick="repeatOrder({{ order.id }})">
+                            <i class="fas fa-redo"></i> Повторить заказ
+                        </button>
+                        {% endif %}
+                    </div>
+
+                    <div class="order-delivery">
+                        <p><i class="fas fa-truck"></i>
+                            {{ order.get_delivery_method_display }}
+                            {% if order.delivery_cost > 0 %}
+                            • Доставка: {{ order.delivery_cost }} ₽
+                            {% endif %}
+                        </p>
+                        <p><i class="fas fa-credit-card"></i>
+                            {{ order.get_payment_method_display }} •
+                            <span class="payment-status payment-{{ order.payment_status }}">
+                                {{ order.get_payment_status_display }}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Пагинация -->
+        {% if orders.has_other_pages %}
+        <div class="pagination">
+            {% if orders.has_previous %}
+            <a href="?page={{ orders.previous_page_number }}" class="page-link">
+                <i class="fas fa-chevron-left"></i> Назад
+            </a>
+            {% endif %}
+
+            {% for num in orders.paginator.page_range %}
+                {% if orders.number == num %}
+                <span class="page-current">{{ num }}</span>
+                {% elif num > orders.number|add:'-3' and num < orders.number|add:'3' %}
+                <a href="?page={{ num }}" class="page-link">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if orders.has_next %}
+            <a href="?page={{ orders.next_page_number }}" class="page-link">
+                Вперед <i class="fas fa-chevron-right"></i>
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="no-orders">
+            <i class="fas fa-shopping-bag"></i>
+            <h2>У вас пока нет заказов</h2>
+            <p>Совершите свою первую покупку в нашем магазине!</p>
+            <a href="{% url 'catalog' %}" class="btn-start-shopping">
+                <i class="fas fa-store"></i> Перейти в каталог
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.account-container {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Стили для боковой панели из предыдущих шаблонов */
+.account-sidebar, .user-info, .account-menu {
+    /* Стили из предыдущих шаблонов */
+}
+
+.account-content {
+    background: white;
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+.orders-header {
+    margin-bottom: 30px;
+}
+
+.orders-header h1 {
+    margin: 0 0 10px 0;
+    font-size: 28px;
+    color: #333;
+}
+
+.orders-header p {
+    margin: 0;
+    color: #666;
+    font-size: 16px;
+}
+
+.order-card {
+    border: 1px solid #eee;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: all 0.3s;
+}
+
+.order-card:hover {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.order-header {
+    background: #f8f9fa;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+}
+
+.order-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.order-number {
+    display: flex;
+    flex-direction: column;
+}
+
+.order-number strong {
+    font-size: 18px;
+    color: #333;
+}
+
+.order-date {
+    color: #666;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.status-pending { background: #fff3cd; color: #856404; }
+.status-processing { background: #cce5ff; color: #004085; }
+.status-shipped { background: #d1ecf1; color: #0c5460; }
+.status-delivered { background: #d4edda; color: #155724; }
+.status-cancelled { background: #f8d7da; color: #721c24; }
+
+.order-summary {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.order-items-count {
+    color: #666;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.order-total {
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+}
+
+.order-items {
+    padding: 20px;
+}
+
+.order-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 0;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.order-item:last-child {
+    border-bottom: none;
+}
+
+.item-image {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.no-image {
+    width: 100%;
+    height: 100%;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ccc;
+}
+
+.item-details {
+    flex: 1;
+}
+
+.item-details h4 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.item-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.item-quantity {
+    color: #666;
+    font-size: 14px;
+}
+
+.item-total {
+    color: #333;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.item-actions {
+    flex-shrink: 0;
+}
+
+.btn-view-product {
+    padding: 8px 15px;
+    background: #f8f9fa;
+    color: #667eea;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.3s;
+}
+
+.btn-view-product:hover {
+    background: #667eea;
+    color: white;
+}
+
+.order-footer {
+    background: #fafafa;
+    padding: 20px;
+    border-top: 1px solid #eee;
+}
+
+.order-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.btn-order-details, .btn-cancel-order, .btn-repeat-order {
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s;
+}
+
+.btn-order-details {
+    background: #667eea;
+    color: white;
+}
+
+.btn-order-details:hover {
+    background: #5a67d8;
+}
+
+.btn-cancel-order {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.btn-cancel-order:hover {
+    background: #f1b0b7;
+}
+
+.btn-repeat-order {
+    background: #d4edda;
+    color: #155724;
+}
+
+.btn-repeat-order:hover {
+    background: #c3e6cb;
+}
+
+.order-delivery p {
+    margin: 5px 0;
+    color: #666;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.payment-status {
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.payment-pending { background: #fff3cd; color: #856404; }
+.payment-paid { background: #d4edda; color: #155724; }
+
+.no-orders {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.no-orders i {
+    font-size: 64px;
+    color: #ddd;
+    margin-bottom: 20px;
+}
+
+.no-orders h2 {
+    margin: 0 0 15px 0;
+    color: #666;
+    font-size: 24px;
+}
+
+.no-orders p {
+    color: #888;
+    margin-bottom: 30px;
+    font-size: 16px;
+}
+
+.btn-start-shopping {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 30px;
+    background: #667eea;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 16px;
+    transition: all 0.3s;
+}
+
+.btn-start-shopping:hover {
+    background: #5a67d8;
+    transform: translateY(-2px);
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 40px;
+}
+
+.page-link, .page-current {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.page-link {
+    background: #f8f9fa;
+    color: #667eea;
+    border: 1px solid #dee2e6;
+}
+
+.page-link:hover {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.page-current {
+    background: #667eea;
+    color: white;
+}
+
+@media (max-width: 992px) {
+    .account-container {
+        grid-template-columns: 1fr;
+    }
+
+    .account-sidebar {
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .order-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .order-summary {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .order-item {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .item-info {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+</style>
+
+<script>
+function cancelOrder(orderId) {
+    if (confirm('Вы уверены, что хотите отменить этот заказ?')) {
+        fetch(`/orders/${orderId}/cancel/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Заказ отменен');
+                location.reload();
+            } else {
+                alert('Ошибка при отмене заказа: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Ошибка соединения');
+        });
+    }
+}
+
+function repeatOrder(orderId) {
+    if (confirm('Добавить все товары из этого заказа в корзину?')) {
+        fetch(`/orders/${orderId}/repeat/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Товары добавлены в корзину');
+                window.location.href = '{% url "cart" %}';
+            } else {
+                alert('Ошибка: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Ошибка соединения');
+        });
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}
